@@ -8,6 +8,10 @@ A modern bilingual e-commerce application built with Angular, focused on clean a
 
 The project follows a feature-based structure with reusable components, shared models, services, signals, and a responsive design system.
 
+## Live Demo
+
+🔗 [Nexus E-Commerce](https://commerce-nexus.vercel.app/)
+
 ## Tech Stack
 
 - Angular
