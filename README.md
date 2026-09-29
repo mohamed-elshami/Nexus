@@ -1,59 +1,70 @@
 # Nexus
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.8.
+A modern bilingual e-commerce application built with Angular, focused on clean architecture, reusable UI, and a responsive design system.
 
-## Development server
+## Overview
 
-To start a local development server, run:
+**Nexus** is a modern e-commerce project built to explore and apply modern Angular architecture and development patterns.
 
-```bash
-ng serve
-```
+The project follows a feature-based structure with reusable components, shared models, services, signals, and a responsive design system.
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Tech Stack
 
-## Code scaffolding
+- Angular
+- TypeScript
+- RxJS
+- Tailwind CSS
+- Angular Signals
+- Reactive Forms
+- REST API
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Features
 
-```bash
-ng generate component component-name
-```
+- 🌐 Bilingual Arabic / English experience
+- 🛍️ Product browsing and product details
+- 🔎 Product filtering and sorting
+- 📂 Categories and subcategories
+- 🏷️ Brands
+- ⭐ Product reviews
+- 🔐 Authentication
+- 🛒 Shopping cart
+- 📦 Orders
+- 👤 User profile and addresses
+- 📱 Responsive mobile-first UI
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Architecture
 
-```bash
-ng generate --help
-```
+The application follows a feature-based architecture:
 
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+```text
+src/app/
+├── core/
+│   ├── guards/
+│   ├── interceptors/
+│   ├── services/
+│   └── constants/
+│
+├── shared/
+│   ├── components/
+│   ├── directives/
+│   ├── pipes/
+│   └── models/
+│
+├── features/
+│   ├── auth/
+│   ├── home/
+│   ├── products/
+│   ├── categories/
+│   ├── subcategories/
+│   ├── brands/
+│   ├── cart/
+│   ├── wishlist/
+│   ├── profile/
+│   ├── addresses/
+│   ├── reviews/
+│   └── orders/
+│
+├── app.routes.ts
+├── app.config.ts
+├── app.ts
+└── app.html

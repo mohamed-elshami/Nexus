@@ -1,0 +1,93 @@
+<footer
+  class="mt-space-xl w-full bg-surface-container-lowest shadow-[0_-1px_8px_rgba(0,0,0,0.03)]"
+>
+  <div class="mx-auto max-w-nexus px-margin-mobile py-space-xl md:px-margin">
+    <div
+      class="mb-space-xl grid grid-cols-1 gap-space-lg md:grid-cols-2 lg:grid-cols-5"
+    >
+      <div class="flex flex-col gap-space-md lg:col-span-2">
+        <a routerLink="/" class="flex items-center gap-space-xs">
+          <img
+            alt="Nexus"
+            class="h-8 w-auto object-contain"
+            src="/nexus-logo.svg"
+          />
+        </a>
+        <p class="max-w-sm text-body-md text-on-surface-variant">
+          Discover state-of-the-art consumer technology, timeless lifestyle
+          curation, and lightning-fast delivery engineered for modern living.
+        </p>
+        <div class="mt-space-xs flex flex-col gap-space-xs">
+          <span class="text-label-md font-semibold text-on-surface"
+            >Stay updated with secret drops</span
+          >
+          <div class="flex max-w-md items-center gap-space-xs">
+            <input
+              class="h-10 flex-1 rounded-lg bg-surface-container-low px-space-md text-body-sm text-on-surface focus:outline-none"
+              placeholder="Enter your email address"
+              type="email"
+            />
+            <button
+              type="button"
+              class="h-10 rounded-lg bg-primary px-space-md text-label-md font-medium text-on-primary transition-colors hover:bg-on-primary-fixed-variant"
+            >
+              Join
+            </button>
+          </div>
+        </div>
+      </div>
+
+      @for (section of linkSections; track section.title) {
+        <div>
+          <h4 class="mb-space-md text-label-lg font-semibold text-on-surface">
+            {{ section.title }}
+          </h4>
+          <ul
+            class="flex flex-col gap-space-sm text-body-sm text-on-surface-variant"
+          >
+            @for (link of section.links; track link.label) {
+              <li>
+                @if (link.path === '#') {
+                  <a class="transition-colors hover:text-primary" href="#">{{
+                    link.label
+                  }}</a>
+                } @else {
+                  <a
+                    class="transition-colors hover:text-primary"
+                    [routerLink]="link.path"
+                    >{{ link.label }}</a
+                  >
+                }
+              </li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+
+    <div
+      class="flex flex-col items-center justify-between gap-space-md rounded-xl bg-surface-container-low p-space-md md:flex-row"
+    >
+      <div class="flex items-center gap-space-sm text-label-md text-on-surface-variant">
+        <span>Accepted Secure Payments:</span>
+        <span
+          class="rounded bg-surface-container-lowest px-2 py-1 text-[12px] font-bold text-on-surface shadow-sm"
+          >VISA</span
+        >
+        <span
+          class="rounded bg-surface-container-lowest px-2 py-1 text-[12px] font-bold text-on-surface shadow-sm"
+          >Mastercard</span
+        >
+        <span
+          class="flex items-center gap-1 rounded bg-surface-container-lowest px-2 py-1 text-[12px] font-semibold text-secondary shadow-sm"
+        >
+          <span class="material-symbols-outlined text-[14px]">payments</span>
+          Cash on Delivery
+        </span>
+      </div>
+      <p class="text-center text-body-sm text-on-surface-variant md:text-right">
+        © 2026 Nexus Technologies Inc. All rights reserved.
+      </p>
+    </div>
+  </div>
+</footer>

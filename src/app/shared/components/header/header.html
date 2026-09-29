@@ -1,0 +1,323 @@
+<header
+  class="fixed inset-x-0 top-0 z-50 bg-surface-container-lowest/95 shadow-[0_1px_8px_rgba(0,0,0,0.04)] backdrop-blur-xl"
+>
+  <!-- Promo bar -->
+  <div class="bg-primary px-margin-mobile py-1 text-on-primary md:px-margin">
+    <div class="mx-auto flex max-w-nexus items-center justify-between text-label-sm font-semibold">
+      <span class="truncate"
+        >Summer Flash Deal: Up to 40% OFF with code NEXUS24 • Free express delivery over $99</span
+      >
+      <div class="hidden items-center gap-space-md sm:flex">
+        <a class="hover:underline" routerLink="/orders">Track Order</a>
+        <span class="opacity-50">|</span>
+        <a class="hover:underline" href="#">Support 24/7</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main bar -->
+  <div
+    class="mx-auto flex h-20 max-w-nexus items-center justify-between gap-space-lg px-margin-mobile md:px-margin"
+  >
+    <div class="flex shrink-0 items-center gap-space-sm">
+      <button
+        type="button"
+        class="flex h-10 w-10 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface lg:hidden"
+        [attr.aria-expanded]="menuOpen()"
+        aria-controls="mobile-nav"
+        aria-label="Open menu"
+        (click)="toggleMenu()"
+      >
+        <span class="material-symbols-outlined text-[24px]">menu</span>
+      </button>
+
+      <a routerLink="/" class="flex items-center gap-space-md" (click)="closeMenu()">
+        <img alt="Nexus" class="h-8 w-auto object-contain" src="/nexus-logo.svg" />
+      </a>
+    </div>
+
+    <!-- Search -->
+    <div class="hidden max-w-2xl flex-1 md:block">
+      <div class="flex h-11 items-center rounded-lg bg-surface-container-low px-space-xs">
+        <div class="relative" (focusout)="onCategoryFocusOut($event)">
+          <button
+            type="button"
+            class="flex min-w-[9.5rem] cursor-pointer items-center gap-space-xs bg-transparent px-space-sm py-space-xs text-left text-label-md font-medium text-on-surface-variant focus:outline-none"
+            [attr.aria-expanded]="categoryMenuOpen()"
+            aria-haspopup="listbox"
+            (click)="toggleCategoryMenu()"
+          >
+            <span class="truncate">{{ selectedCategoryLabel() }}</span>
+            <span
+              class="material-symbols-outlined shrink-0 text-[16px] text-on-surface-variant transition-transform"
+              [class.rotate-180]="categoryMenuOpen()"
+              >expand_more</span
+            >
+          </button>
+
+          @if (categoryMenuOpen()) {
+            <ul
+              class="absolute top-full left-0 z-50 mt-2 max-h-72 w-56 overflow-y-auto rounded-xl bg-surface-container-lowest py-space-xs shadow-overlay"
+              role="listbox"
+            >
+              <li>
+                <button
+                  type="button"
+                  role="option"
+                  class="flex w-full px-space-md py-space-sm text-left text-label-md text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
+                  [class.bg-surface-container]="selectedCategoryId() === null"
+                  [class.font-semibold]="selectedCategoryId() === null"
+                  [class.text-primary]="selectedCategoryId() === null"
+                  (click)="selectCategory(null)"
+                >
+                  All Categories
+                </button>
+              </li>
+              @for (category of categories(); track category._id) {
+                <li>
+                  <button
+                    type="button"
+                    role="option"
+                    class="flex w-full px-space-md py-space-sm text-left text-label-md text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
+                    [class.bg-surface-container]="selectedCategoryId() === category._id"
+                    [class.font-semibold]="selectedCategoryId() === category._id"
+                    [class.text-primary]="selectedCategoryId() === category._id"
+                    (click)="selectCategory(category._id)"
+                  >
+                    {{ category.name }}
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+        <div class="mx-space-xs h-6 w-px bg-outline-variant"></div>
+        <div class="flex flex-1 items-center px-space-xs">
+          <span class="material-symbols-outlined mr-space-xs text-[20px] text-outline">search</span>
+          <input
+            class="w-full bg-transparent text-body-sm text-on-surface placeholder:text-outline focus:outline-none"
+            placeholder="Search products, tech essentials, brands..."
+            type="search"
+          />
+          <span
+            class="hidden rounded bg-surface-container px-space-xs py-0.5 text-label-sm text-outline sm:inline-block"
+            >⌘K</span
+          >
+        </div>
+        <button
+          type="button"
+          class="flex h-9 items-center justify-center rounded-lg bg-primary px-space-md text-label-md text-on-primary transition-colors hover:bg-on-primary-fixed-variant"
+        >
+          Search
+        </button>
+      </div>
+    </div>
+
+    <!-- Nav -->
+    <nav class="hidden shrink-0 items-center gap-space-xs lg:flex">
+      @for (link of navLinks; track link.path) {
+        <a
+          [routerLink]="link.path"
+          routerLinkActive="bg-surface-container text-primary font-semibold"
+          class="rounded-lg px-space-sm py-space-xs text-label-md text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
+          >{{ link.label }}</a
+        >
+      }
+    </nav>
+
+    <!-- Actions -->
+    <div class="flex shrink-0 items-center gap-space-md">
+      <a
+        routerLink="/wishlist"
+        aria-label="Wishlist"
+        class="relative rounded-full p-space-xs text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface"
+      >
+        <span class="material-symbols-outlined text-[22px]">favorite</span>
+        <span
+          class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-error text-[10px] font-bold text-on-error"
+          >0</span
+        >
+      </a>
+
+      <a
+        routerLink="/cart"
+        class="flex items-center gap-space-sm rounded-lg bg-surface-container-low px-space-sm py-space-xs transition-colors hover:bg-surface-container"
+      >
+        <div class="relative flex items-center justify-center">
+          <span
+            class="material-symbols-outlined flex items-center justify-center text-[22px] leading-none text-primary"
+            >shopping_bag</span
+          >
+          <span
+            class="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-on-primary"
+            >0</span
+          >
+        </div>
+        <div class="hidden flex-col text-left sm:flex">
+          <span class="text-[11px] leading-none text-on-surface-variant"
+            >Cart Total</span
+          >
+          <span class="text-label-md leading-tight font-semibold text-on-surface"
+            >$0.00</span
+          >
+        </div>
+      </a>
+
+      <div class="group relative">
+        <button
+          type="button"
+          class="flex items-center gap-space-xs rounded-full p-0.5 transition-all hover:ring-2 hover:ring-primary/20 focus:outline-none"
+        >
+          <span
+            class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-container text-label-md font-semibold text-on-primary"
+            >N</span
+          >
+          <span
+            class="material-symbols-outlined hidden text-[18px] text-on-surface-variant sm:inline"
+            >expand_more</span
+          >
+        </button>
+        <div
+          class="absolute top-full right-0 mt-2 hidden w-56 rounded-xl bg-surface-container-lowest py-space-xs shadow-modal transition-all group-hover:block group-focus-within:block"
+        >
+          <div
+            class="mx-space-xs mb-space-xs rounded-lg bg-surface-container-low px-space-md py-space-sm"
+          >
+            <p class="text-label-md font-semibold text-on-surface">Guest</p>
+            <p class="text-body-sm text-on-surface-variant">Sign in to continue</p>
+          </div>
+          <a
+            routerLink="/profile"
+            class="flex items-center gap-space-sm px-space-md py-space-xs text-label-md text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
+          >
+            <span class="material-symbols-outlined text-[18px]">person</span>
+            Profile & Security
+          </a>
+          <a
+            routerLink="/addresses"
+            class="flex items-center gap-space-sm px-space-md py-space-xs text-label-md text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
+          >
+            <span class="material-symbols-outlined text-[18px]">home_pin</span>
+            My Addresses
+          </a>
+          <a
+            routerLink="/orders"
+            class="flex items-center gap-space-sm px-space-md py-space-xs text-label-md text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
+          >
+            <span class="material-symbols-outlined text-[18px]">package_2</span>
+            Orders History
+          </a>
+          <div class="my-space-xs h-px bg-surface-container"></div>
+          <a
+            routerLink="/auth"
+            class="flex items-center gap-space-sm px-space-md py-space-xs text-label-md text-error transition-colors hover:bg-error-container hover:text-on-error-container"
+          >
+            <span class="material-symbols-outlined text-[18px]">login</span>
+            Sign in
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category chips -->
+  <div class="bg-surface-container-low shadow-[0_1px_4px_rgba(0,0,0,0.02)]">
+    <div
+      class="scrollbar-hide mx-auto flex max-w-nexus items-center justify-between gap-space-xs overflow-x-auto px-margin-mobile py-space-xs md:px-margin"
+    >
+      <div
+        class="flex items-center gap-space-xs whitespace-nowrap text-label-md text-on-surface-variant"
+      >
+        @for (category of categories(); track category._id; let i = $index) {
+          <a
+            [routerLink]="['/categories', category._id]"
+            class="rounded-full px-space-sm py-1 transition-colors hover:bg-surface-container hover:text-on-surface"
+            [class.bg-surface-container-lowest]="i === 0"
+            [class.font-semibold]="i === 0"
+            [class.text-on-surface]="i === 0"
+            >{{ category.name }}</a
+          >
+        }
+      </div>
+      <div
+        class="hidden shrink-0 items-center gap-space-xs pl-space-md text-label-sm text-secondary xl:flex"
+      >
+        <span class="material-symbols-outlined text-[16px]">local_shipping</span>
+        <span>Fast Delivery Nationwide</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile menu -->
+  @if (menuOpen()) {
+    <div
+      class="fixed inset-0 z-[60] bg-inverse-surface/40 lg:hidden"
+      (click)="closeMenu()"
+      aria-hidden="true"
+    ></div>
+
+    <aside
+      id="mobile-nav"
+      class="fixed top-0 left-0 z-[70] flex h-dvh w-[min(100%,20rem)] flex-col bg-surface-container-lowest shadow-modal lg:hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Mobile navigation"
+    >
+      <div
+        class="flex h-16 items-center justify-between border-b border-outline-variant/20 px-space-md"
+      >
+        <a routerLink="/" class="flex items-center" (click)="closeMenu()">
+          <img alt="Nexus" class="h-7 w-auto object-contain" src="/nexus-logo.svg" />
+        </a>
+        <button
+          type="button"
+          class="flex h-10 w-10 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container"
+          aria-label="Close menu"
+          (click)="closeMenu()"
+        >
+          <span class="material-symbols-outlined text-[24px]">close</span>
+        </button>
+      </div>
+
+      <div class="border-b border-outline-variant/20 p-space-md">
+        <div
+          class="flex h-11 items-center rounded-lg bg-surface-container-low px-space-sm"
+        >
+          <span class="material-symbols-outlined mr-space-xs text-[20px] text-outline"
+            >search</span
+          >
+          <input
+            class="w-full bg-transparent text-body-sm text-on-surface placeholder:text-outline focus:outline-none"
+            placeholder="Search products..."
+            type="search"
+          />
+        </div>
+      </div>
+
+      <nav class="flex flex-1 flex-col gap-space-xs overflow-y-auto p-space-md">
+        @for (link of navLinks; track link.path) {
+          <a
+            [routerLink]="link.path"
+            routerLinkActive="bg-surface-container text-primary font-semibold"
+            class="flex items-center gap-space-sm rounded-lg px-space-md py-space-sm text-label-lg text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
+            (click)="closeMenu()"
+          >
+            <span class="material-symbols-outlined text-[22px]">{{ link.icon }}</span>
+            {{ link.label }}
+          </a>
+        }
+      </nav>
+
+      <div class="border-t border-outline-variant/20 p-space-md">
+        <a
+          routerLink="/auth"
+          class="flex h-11 w-full items-center justify-center gap-space-xs rounded-lg bg-primary text-label-lg font-semibold text-on-primary transition-colors hover:bg-on-primary-fixed-variant"
+          (click)="closeMenu()"
+        >
+          <span class="material-symbols-outlined text-[20px]">login</span>
+          Sign in
+        </a>
+      </div>
+    </aside>
+  }
+</header>

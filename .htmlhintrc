@@ -1,0 +1,9 @@
+{
+  "attr-lowercase": false,
+  "attr-no-duplication": true,
+  "tag-pair": true,
+  "tagname-lowercase": true,
+  "id-unique": true,
+  "src-not-empty": true,
+  "attr-no-unnecessary-whitespace": true
+}
