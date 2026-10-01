@@ -63,7 +63,7 @@ export class Header implements OnInit {
 
   toggleMenu(): void {
     this.menuOpen.update((open) => !open);
-    this.categoryMenuOpen.set(false);
+    this.closeCategoryMenu();
   }
 
   closeMenu(): void {
@@ -80,7 +80,7 @@ export class Header implements OnInit {
 
   selectCategory(id: string | null): void {
     this.selectedCategoryId.set(id);
-    this.categoryMenuOpen.set(false);
+    this.closeCategoryMenu();
   }
 
   onCategoryFocusOut(event: FocusEvent): void {

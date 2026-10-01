@@ -131,12 +131,9 @@
   --max-width-nexus: 1360px;
 
   /* Shadows */
-  --shadow-raised:
-    0 2px 4px -1px rgb(15 23 42 / 0.04), 0 4px 6px -1px rgb(15 23 42 / 0.06);
-  --shadow-overlay:
-    0 10px 15px -3px rgb(15 23 42 / 0.08), 0 4px 6px -2px rgb(15 23 42 / 0.04);
-  --shadow-modal:
-    0 20px 25px -5px rgb(15 23 42 / 0.12), 0 10px 10px -5px rgb(15 23 42 / 0.04);
+  --shadow-raised: 0 2px 4px -1px rgb(15 23 42 / 0.04), 0 4px 6px -1px rgb(15 23 42 / 0.06);
+  --shadow-overlay: 0 10px 15px -3px rgb(15 23 42 / 0.08), 0 4px 6px -2px rgb(15 23 42 / 0.04);
+  --shadow-modal: 0 20px 25px -5px rgb(15 23 42 / 0.12), 0 10px 10px -5px rgb(15 23 42 / 0.04);
 }
 
 @layer base {
@@ -195,5 +192,16 @@
 
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+}
+
+@keyframes in {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
