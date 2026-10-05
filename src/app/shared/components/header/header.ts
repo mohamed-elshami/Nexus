@@ -9,7 +9,9 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { filter } from 'rxjs';
 import { CategoryService } from '../../../features/categories/services/category.service';
 
 @Component({
@@ -19,6 +21,7 @@ import { CategoryService } from '../../../features/categories/services/category.
 })
 export class Header implements OnInit {
   private readonly categoryService = inject(CategoryService);
+  private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -55,10 +58,18 @@ export class Header implements OnInit {
         document.body.style.overflow = '';
       }
     });
+
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.syncSelectedCategoryFromUrl());
   }
 
   ngOnInit(): void {
     this.categoryService.getCategories({ limit: 40 });
+    this.syncSelectedCategoryFromUrl();
   }
 
   toggleMenu(): void {
@@ -81,6 +92,25 @@ export class Header implements OnInit {
   selectCategory(id: string | null): void {
     this.selectedCategoryId.set(id);
     this.closeCategoryMenu();
+    this.closeMenu();
+  }
+
+  selectCategoryChip(id: string): void {
+    this.selectedCategoryId.set(id);
+    this.closeMenu();
+
+    const tree = this.router.parseUrl(this.router.url);
+    const isProducts = tree.root.children['primary']?.segments[0]?.path === 'products';
+    const currentParams = isProducts ? { ...tree.queryParams } : {};
+
+    void this.router.navigate(['/products'], {
+      queryParams: {
+        ...currentParams,
+        categories: id,
+        page: null,
+        subcategory: null,
+      },
+    });
   }
 
   onCategoryFocusOut(event: FocusEvent): void {
@@ -89,5 +119,17 @@ export class Header implements OnInit {
     if (!next || !container.contains(next)) {
       this.closeCategoryMenu();
     }
+  }
+
+  private syncSelectedCategoryFromUrl(): void {
+    const tree = this.router.parseUrl(this.router.url);
+    const isProducts = tree.root.children['primary']?.segments[0]?.path === 'products';
+    if (!isProducts) {
+      return;
+    }
+
+    const categories = tree.queryParams['categories'];
+    const first = Array.isArray(categories) ? categories[0] : categories;
+    this.selectedCategoryId.set(typeof first === 'string' && first ? first : null);
   }
 }

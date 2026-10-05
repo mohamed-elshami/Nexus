@@ -1,0 +1,102 @@
+@let item = product();
+
+<article
+  class="group relative flex flex-col justify-between overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm transition-all duration-300 hover:shadow-md sm:flex-row"
+>
+  <div
+    class="relative aspect-4/5 w-full shrink-0 overflow-hidden sm:aspect-auto sm:w-36 sm:self-stretch md:w-40"
+  >
+    <a [routerLink]="['/products', item._id]" class="absolute inset-0 block h-full w-full">
+      <img
+        [src]="item.imageCover"
+        [alt]="item.title"
+        class="h-full w-full object-cover mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
+      />
+    </a>
+
+    @if (item.brand?.name) {
+      <span
+        class="absolute top-3 left-3 rounded-full bg-secondary-container px-2.5 py-0.5 text-[11px] font-bold tracking-wider text-on-secondary-container uppercase"
+      >
+        {{ item.brand.name }}
+      </span>
+    }
+
+    <button
+      type="button"
+      aria-label="Toggle wishlist"
+      class="absolute top-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-lowest/80 text-on-surface-variant shadow-sm backdrop-blur transition-colors hover:text-error"
+      [class.text-error]="wishlistActive()"
+      (click)="toggleWishlist.emit(item)"
+    >
+      <span
+        class="material-symbols-outlined text-[18px]"
+        [style.font-variation-settings]="wishlistActive() ? `'FILL' 1` : null"
+        >favorite</span
+      >
+    </button>
+
+    <div
+      class="absolute right-2 bottom-2 left-2 flex items-center justify-between rounded-lg border border-white/40 bg-white/20 px-2.5 py-1 shadow-lg shadow-black/15 backdrop-blur-md backdrop-saturate-150 sm:hidden"
+    >
+      <span class="text-[11px] font-medium text-secondary">
+        @if (item.quantity > 0) {
+          In Stock ({{ item.quantity }} left)
+        } @else {
+          Out of Stock
+        }
+      </span>
+      <span class="text-[11px] text-outline">Sold: {{ item.sold | number }}</span>
+    </div>
+  </div>
+
+  <div class="flex min-w-0 flex-1 flex-col justify-between gap-space-sm p-space-md">
+    <div>
+      <div class="mb-1 flex items-center gap-1 text-amber-500">
+        <span
+          class="material-symbols-outlined text-[16px]"
+          style="font-variation-settings: 'FILL' 1"
+          >star</span
+        >
+        <span class="text-label-sm font-bold text-on-surface">{{ item.ratingsAverage }}</span>
+        <span class="text-body-sm text-outline">({{ item.ratingsQuantity }})</span>
+        <span class="ml-auto hidden text-[11px] text-outline sm:inline"
+          >Sold: {{ item.sold | number }}</span
+        >
+      </div>
+
+      <a [routerLink]="['/products', item._id]">
+        <h3
+          class="line-clamp-1 text-[16px] font-semibold text-on-surface transition-colors group-hover:text-primary sm:line-clamp-2"
+        >
+          {{ item.title }}
+        </h3>
+      </a>
+      <p class="mt-0.5 line-clamp-1 text-body-sm text-on-surface-variant sm:line-clamp-2">
+        {{ item.description }}
+      </p>
+      <p class="mt-1 hidden text-[11px] font-medium text-secondary sm:block">
+        @if (item.quantity > 0) {
+          In Stock ({{ item.quantity }} left)
+        } @else {
+          Out of Stock
+        }
+      </p>
+    </div>
+
+    <div class="flex items-end justify-between gap-space-sm pt-2">
+      <div>
+        <span class="text-headline-sm font-bold text-primary">{{ item.price }} EGP</span>
+      </div>
+      <button
+        type="button"
+        class="flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-label-sm font-semibold text-on-primary shadow-sm transition-all hover:bg-on-primary-fixed-variant active:scale-95"
+        [disabled]="item.quantity <= 0"
+        (click)="addToCart.emit(item)"
+      >
+        <span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+        Add
+      </button>
+    </div>
+  </div>
+</article>

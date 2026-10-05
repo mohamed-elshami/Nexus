@@ -39,5 +39,7 @@ export interface ProductQueryParams {
   priceLte?: number;
   brands?: string[];
   categories?: string[];
+  subcategory?: string;
+  ratingsAverageGte?: number;
   sort?: string;
 }

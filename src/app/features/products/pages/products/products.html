@@ -1,3 +1,366 @@
-<section class="container-nexus py-space-xl">
-  <h1 class="font-display text-headline-lg text-on-surface">Products</h1>
+<section class="container-nexus py-space-md">
+  <!-- Top Breadcrumb & Metadata Overview -->
+  <div
+    class="mb-space-md flex flex-col justify-between gap-space-sm sm:flex-row sm:items-center"
+  >
+    <app-breadcrumbs [items]="breadcrumbItems" />
+
+    <div class="flex items-center gap-space-sm sm:justify-end">
+      <button
+        type="button"
+        class="relative inline-flex h-8 items-center gap-1.5 rounded-lg bg-surface-container-lowest px-space-sm text-label-sm font-semibold text-on-surface shadow-sm transition-colors hover:bg-surface-container lg:hidden"
+        (click)="toggleFilters()"
+      >
+        <span class="material-symbols-outlined text-[18px]">tune</span>
+        Filters
+        @if (activeFilterChips().length) {
+          <span
+            class="absolute -top-1.5 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white shadow-sm"
+          >
+            {{ activeFilterChips().length }}
+          </span>
+        }
+      </button>
+
+      <span
+        class="rounded-full bg-surface-container px-3 py-1 text-label-sm text-on-surface-variant"
+      >
+        @if (loading() && !products().length) {
+          Loading…
+        } @else if (results() > 0) {
+          Showing
+          <strong class="font-semibold text-on-surface"
+            >{{ showingFrom() }} – {{ showingTo() }}</strong
+          >
+          of
+          <strong class="font-semibold text-on-surface">{{ results() }}</strong>
+          items
+        } @else {
+          No items found
+        }
+      </span>
+    </div>
+  </div>
+
+  <!-- Active Filter Chips Bar -->
+  @if (activeFilterChips().length) {
+    <div
+      class="mb-space-lg flex flex-col gap-space-sm rounded-xl bg-surface-container-lowest p-space-md shadow-sm lg:flex-row lg:items-center lg:justify-between lg:gap-space-md"
+    >
+      <div
+        class="flex min-w-0 flex-col gap-space-sm lg:flex-1 lg:flex-row lg:items-center"
+      >
+        <span
+          class="flex shrink-0 items-center gap-1 text-label-sm font-semibold tracking-wider text-on-surface-variant uppercase lg:mr-space-xs"
+        >
+          <span class="material-symbols-outlined text-[16px] text-primary">filter_alt</span>
+          Applied Filters:
+        </span>
+
+        <div
+          class="scrollbar-hide flex items-center gap-space-sm overflow-x-auto whitespace-nowrap"
+        >
+          @for (chip of activeFilterChips(); track chip.key) {
+            <button
+              type="button"
+              class="group inline-flex shrink-0 items-center gap-1 rounded-lg bg-surface-container px-3 py-1 text-label-sm font-medium text-on-surface transition-colors hover:bg-surface-container-high"
+              (click)="removeChip(chip.key)"
+            >
+              <span>{{ chip.label }}</span>
+              <span
+                class="material-symbols-outlined text-[14px] text-on-surface-variant transition-colors group-hover:text-error"
+                >close</span
+              >
+            </button>
+          }
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="flex w-fit shrink-0 items-center gap-1 rounded-lg px-space-sm py-1 text-label-sm font-semibold text-error transition-colors hover:bg-error-container/40 hover:text-on-error-container"
+        (click)="onClearFilters()"
+      >
+        <span class="material-symbols-outlined text-[16px]">restart_alt</span>
+        Reset All
+      </button>
+    </div>
+  }
+
+  <!-- Layout: Sidebar + Catalog -->
+  <div class="grid grid-cols-1 items-start gap-space-lg lg:grid-cols-12">
+    <!-- LEFT SIDEBAR -->
+    <div class="hidden w-full lg:col-span-3 lg:block">
+      <div class="sticky top-24">
+        <app-product-filters
+          [categories]="categories()"
+          [subcategories]="subcategories()"
+          [brands]="brands()"
+          [initialFilters]="initialFilters()"
+          (apply)="onApplyFilters($event)"
+          (clear)="onClearFilters()"
+        />
+      </div>
+    </div>
+
+    <!-- RIGHT PRODUCT CATALOG -->
+    <section class="flex w-full flex-col gap-space-md lg:col-span-9">
+      <!-- Top Toolbar -->
+      <div
+        class="flex flex-col items-center justify-between gap-space-md rounded-xl bg-surface-container-lowest p-space-md shadow-sm sm:flex-row"
+      >
+        <div class="flex w-full items-center gap-space-md sm:w-auto">
+          <div class="flex items-center gap-2">
+            <span
+              class="text-label-md font-medium whitespace-nowrap text-on-surface-variant"
+              >Sort by:</span
+            >
+            <div class="relative" (focusout)="onSortFocusOut($event)">
+              <button
+                type="button"
+                class="flex min-w-44 items-center justify-between gap-space-sm rounded-lg bg-surface-container-low py-1.5 pr-2 pl-3 text-left text-label-md font-semibold text-on-surface transition-colors hover:bg-surface-container focus:outline-none"
+                [attr.aria-expanded]="sortMenuOpen()"
+                aria-haspopup="listbox"
+                (click)="toggleSortMenu()"
+              >
+                <span class="truncate">{{ selectedSortLabel() }}</span>
+                <span
+                  class="material-symbols-outlined shrink-0 text-[16px] text-on-surface-variant transition-transform"
+                  [class.rotate-180]="sortMenuOpen()"
+                  >expand_more</span
+                >
+              </button>
+
+              @if (sortMenuOpen()) {
+                <ul
+                  class="absolute top-full left-0 z-50 mt-2 w-56 overflow-hidden rounded-xl bg-surface-container-lowest py-space-xs shadow-overlay"
+                  role="listbox"
+                >
+                  @for (option of sortOptions; track option.value) {
+                    <li>
+                      <button
+                        type="button"
+                        role="option"
+                        class="flex w-full items-center gap-space-sm px-space-md py-space-sm text-left text-label-md transition-colors hover:bg-surface-container hover:text-on-surface"
+                        [class.bg-primary-fixed]="(query().sort ?? '-sold') === option.value"
+                        [class.font-semibold]="(query().sort ?? '-sold') === option.value"
+                        [class.text-primary]="(query().sort ?? '-sold') === option.value"
+                        [class.text-on-surface-variant]="
+                          (query().sort ?? '-sold') !== option.value
+                        "
+                        [attr.aria-selected]="(query().sort ?? '-sold') === option.value"
+                        (click)="onSortChange(option.value)"
+                      >
+                        <span class="material-symbols-outlined text-[18px]">{{
+                          option.icon
+                        }}</span>
+                        <span class="flex-1 truncate">{{ option.label }}</span>
+                        @if ((query().sort ?? '-sold') === option.value) {
+                          <span class="material-symbols-outlined text-[16px]">check</span>
+                        }
+                      </button>
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+          </div>
+
+          <div class="hidden items-center gap-1.5 text-on-surface-variant md:flex">
+            <span class="text-outline-variant">|</span>
+            <span class="text-label-sm">Per page:</span>
+            <div class="relative" (focusout)="onLimitFocusOut($event)">
+              <button
+                type="button"
+                class="flex min-w-14 items-center justify-between gap-1 rounded-lg bg-surface-container-low px-2 py-1 text-label-sm font-semibold text-on-surface transition-colors hover:bg-surface-container focus:outline-none"
+                [attr.aria-expanded]="limitMenuOpen()"
+                aria-haspopup="listbox"
+                (click)="toggleLimitMenu()"
+              >
+                <span>{{ query().limit ?? 12 }}</span>
+                <span
+                  class="material-symbols-outlined text-[14px] transition-transform"
+                  [class.rotate-180]="limitMenuOpen()"
+                  >expand_more</span
+                >
+              </button>
+
+              @if (limitMenuOpen()) {
+                <ul
+                  class="absolute top-full left-0 z-50 mt-2 min-w-full overflow-hidden rounded-xl bg-surface-container-lowest py-space-xs shadow-overlay"
+                  role="listbox"
+                >
+                  @for (limit of limitOptions; track limit) {
+                    <li>
+                      <button
+                        type="button"
+                        role="option"
+                        class="flex w-full items-center justify-between gap-2 px-space-sm py-space-xs text-left text-label-sm transition-colors hover:bg-surface-container"
+                        [class.bg-primary-fixed]="(query().limit ?? 12) === limit"
+                        [class.font-semibold]="(query().limit ?? 12) === limit"
+                        [class.text-primary]="(query().limit ?? 12) === limit"
+                        [class.text-on-surface-variant]="(query().limit ?? 12) !== limit"
+                        [attr.aria-selected]="(query().limit ?? 12) === limit"
+                        (click)="onLimitChange(limit)"
+                      >
+                        <span>{{ limit }}</span>
+                        @if ((query().limit ?? 12) === limit) {
+                          <span class="material-symbols-outlined text-[14px]">check</span>
+                        }
+                      </button>
+                    </li>
+                  }
+                </ul>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="flex w-full items-center justify-between gap-space-sm sm:w-auto sm:justify-end"
+        >
+          <div
+            class="flex items-center rounded-lg bg-surface-container-low p-0.5"
+            role="group"
+            aria-label="View mode"
+          >
+            <button
+              type="button"
+              class="rounded-md p-1.5 transition-colors"
+              [class.bg-surface-container-lowest]="viewMode() === 'grid'"
+              [class.text-primary]="viewMode() === 'grid'"
+              [class.shadow-sm]="viewMode() === 'grid'"
+              [class.text-outline]="viewMode() !== 'grid'"
+              [class.hover:text-on-surface]="viewMode() !== 'grid'"
+              aria-label="Grid view"
+              [attr.aria-pressed]="viewMode() === 'grid'"
+              (click)="setViewMode('grid')"
+            >
+              <span class="material-symbols-outlined block text-[20px]">grid_view</span>
+            </button>
+            <button
+              type="button"
+              class="rounded-md p-1.5 transition-colors"
+              [class.bg-surface-container-lowest]="viewMode() === 'list'"
+              [class.text-primary]="viewMode() === 'list'"
+              [class.shadow-sm]="viewMode() === 'list'"
+              [class.text-outline]="viewMode() !== 'list'"
+              [class.hover:text-on-surface]="viewMode() !== 'list'"
+              aria-label="List view"
+              [attr.aria-pressed]="viewMode() === 'list'"
+              (click)="setViewMode('list')"
+            >
+              <span class="material-symbols-outlined block text-[20px]">view_list</span>
+            </button>
+          </div>
+          <span class="hidden text-label-sm text-on-surface-variant sm:inline">
+            {{ results() }} Total Items
+          </span>
+        </div>
+      </div>
+
+      @if (error()) {
+        <div
+          class="rounded-xl bg-error-container px-space-md py-space-sm text-body-sm text-on-error-container"
+          role="alert"
+        >
+          {{ error() }}
+        </div>
+      }
+
+      @if (loading()) {
+        @if (viewMode() === 'grid') {
+          <div class="grid grid-cols-1 gap-space-md sm:grid-cols-2 lg:grid-cols-3">
+            @for (item of skeletonItems(); track item) {
+              <app-grid-product-card-skeleton />
+            }
+          </div>
+        } @else {
+          <div class="flex flex-col gap-space-md">
+            @for (item of skeletonItems(); track item) {
+              <app-list-product-card-skeleton />
+            }
+          </div>
+        }
+      } @else if (!products().length) {
+        <div
+          class="flex min-h-64 flex-col items-center justify-center gap-space-sm rounded-xl bg-surface-container-lowest px-space-md py-space-xl text-center shadow-sm"
+        >
+          <span class="material-symbols-outlined text-[40px] text-outline">inventory_2</span>
+          <p class="font-display text-headline-sm text-on-surface">No products match</p>
+          <p class="max-w-sm text-body-sm text-on-surface-variant">
+            Try adjusting or clearing your filters to see more results.
+          </p>
+          @if (activeFilterChips().length) {
+            <button
+              type="button"
+              class="mt-space-xs inline-flex h-10 items-center rounded-lg bg-primary px-space-md text-label-md font-semibold text-on-primary transition-colors hover:bg-on-primary-fixed-variant"
+              (click)="onClearFilters()"
+            >
+              Clear filters
+            </button>
+          }
+        </div>
+      } @else if (viewMode() === 'grid') {
+        <div class="grid grid-cols-1 gap-space-md sm:grid-cols-2 lg:grid-cols-3">
+          @for (product of products(); track product._id) {
+            <app-grid-product-card
+              [product]="product"
+              (addToCart)="onAddToCart($event)"
+              (toggleWishlist)="onToggleWishlist($event)"
+            />
+          }
+        </div>
+      } @else {
+        <div class="flex flex-col gap-space-md">
+          @for (product of products(); track product._id) {
+            <app-list-product-card
+              [product]="product"
+              (addToCart)="onAddToCart($event)"
+              (toggleWishlist)="onToggleWishlist($event)"
+            />
+          }
+        </div>
+      }
+
+      @if (pagination(); as meta) {
+        @if (meta.numberOfPages > 1) {
+          <app-pagination [metadata]="meta" (pageChange)="onPageChange($event)" />
+        }
+      }
+    </section>
+  </div>
 </section>
+
+<!-- Mobile filter drawer -->
+@if (filtersOpen()) {
+  <div
+    class="fixed inset-0 z-[110] bg-inverse-surface/40 lg:hidden"
+    (click)="closeFilters()"
+    aria-hidden="true"
+  ></div>
+
+  <aside
+    class="fixed inset-y-0 left-0 z-[120] w-[min(100%,22rem)] animate-[in_300ms_ease-in-out] overflow-y-auto bg-surface p-space-md shadow-modal lg:hidden"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Product filters"
+  >
+    <button
+      type="button"
+      class="absolute top-space-lg right-space-lg z-10 flex h-9 w-9 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container"
+      aria-label="Close filters"
+      (click)="closeFilters()"
+    >
+      <span class="material-symbols-outlined text-[22px]">close</span>
+    </button>
+    <app-product-filters
+      [categories]="categories()"
+      [subcategories]="subcategories()"
+      [brands]="brands()"
+      [initialFilters]="initialFilters()"
+      (apply)="onApplyFilters($event)"
+      (clear)="onClearFilters()"
+    />
+  </aside>
+}

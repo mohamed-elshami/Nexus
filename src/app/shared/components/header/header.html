@@ -1,5 +1,5 @@
 <header
-  class="fixed inset-x-0 top-0 z-50 bg-surface-container-lowest/95 shadow-[0_1px_8px_rgba(0,0,0,0.04)] backdrop-blur-xl"
+  class="fixed inset-x-0 top-0 z-[100] bg-surface-container-lowest/95 shadow-[0_1px_8px_rgba(0,0,0,0.04)] backdrop-blur-xl"
 >
   <!-- Promo bar -->
   <div class="bg-primary px-margin-mobile py-1 text-on-primary md:px-margin">
@@ -183,21 +183,21 @@
             <p class="text-body-sm text-on-surface-variant">Sign in to continue</p>
           </div>
           <a
-            routerLink="/profile"
+            routerLink="/account/profile"
             class="flex items-center gap-space-sm px-space-md py-space-xs text-label-md text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
           >
             <span class="material-symbols-outlined text-[18px]">person</span>
             Profile & Security
           </a>
           <a
-            routerLink="/addresses"
+            routerLink="/account/addresses"
             class="flex items-center gap-space-sm px-space-md py-space-xs text-label-md text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
           >
             <span class="material-symbols-outlined text-[18px]">home_pin</span>
             My Addresses
           </a>
           <a
-            routerLink="/orders"
+            routerLink="/account/orders"
             class="flex items-center gap-space-sm px-space-md py-space-xs text-label-md text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
           >
             <span class="material-symbols-outlined text-[18px]">package_2</span>
@@ -205,7 +205,7 @@
           </a>
           <div class="my-space-xs h-px bg-surface-container"></div>
           <a
-            routerLink="/auth"
+            routerLink="/login"
             class="flex items-center gap-space-sm px-space-md py-space-xs text-label-md text-error transition-colors hover:bg-error-container hover:text-on-error-container"
           >
             <span class="material-symbols-outlined text-[18px]">login</span>
@@ -224,15 +224,18 @@
       <div
         class="flex items-center gap-space-xs whitespace-nowrap text-label-md text-on-surface-variant"
       >
-        @for (category of categories(); track category._id; let i = $index) {
-          <a
-            [routerLink]="['/categories', category._id]"
+        @for (category of categories(); track category._id) {
+          <button
+            type="button"
             class="rounded-full px-space-sm py-1 transition-colors hover:bg-surface-container hover:text-on-surface"
-            [class.bg-surface-container-lowest]="i === 0"
-            [class.font-semibold]="i === 0"
-            [class.text-on-surface]="i === 0"
-            >{{ category.name }}</a
+            [class.bg-surface-container-lowest]="selectedCategoryId() === category._id"
+            [class.font-semibold]="selectedCategoryId() === category._id"
+            [class.text-on-surface]="selectedCategoryId() === category._id"
+            [class.text-primary]="selectedCategoryId() === category._id"
+            (click)="selectCategoryChip(category._id)"
           >
+            {{ category.name }}
+          </button>
         }
       </div>
       <div
@@ -302,7 +305,7 @@
 
       <div class="border-t border-outline-variant/20 p-space-md">
         <a
-          routerLink="/auth"
+          routerLink="/login"
           class="flex h-11 w-full items-center justify-center gap-space-xs rounded-lg bg-primary text-label-lg font-semibold text-on-primary transition-colors hover:bg-on-primary-fixed-variant"
           (click)="closeMenu()"
         >
