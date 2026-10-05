@@ -1,0 +1,243 @@
+<aside class="flex w-full flex-col gap-space-md">
+  <div
+    class="flex flex-col gap-space-lg rounded-xl bg-surface-container-lowest p-space-md shadow-sm"
+  >
+    <div
+      class="-mx-space-md -mt-space-md flex items-center rounded-t-xl bg-surface-container-low p-space-md pb-space-sm"
+    >
+      <div class="relative flex items-center gap-2 pr-2">
+        <span class="material-symbols-outlined text-[20px] text-primary">tune</span>
+        <h2 class="font-display text-headline-sm font-semibold text-on-surface">
+          Filters
+        </h2>
+        @if (activeCount() > 0) {
+          <span
+            class="absolute -top-1.5 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-white shadow-sm"
+          >
+            {{ activeCount() }}
+          </span>
+        }
+      </div>
+    </div>
+
+    <!-- Price -->
+    <div class="flex flex-col gap-space-sm">
+      <div class="flex items-center justify-between">
+        <span class="text-label-lg font-semibold text-on-surface">Price Filter</span>
+        <span class="text-label-sm font-medium text-secondary">EGP</span>
+      </div>
+      <div class="grid grid-cols-2 gap-space-xs">
+        @for (preset of pricePresets; track preset.label) {
+          <button
+            type="button"
+            class="rounded-lg px-2 py-1 text-center text-label-sm transition-all hover:bg-primary hover:text-white"
+            [class.bg-primary]="isPricePresetActive(preset.gte, preset.lte)"
+            [class.text-white]="isPricePresetActive(preset.gte, preset.lte)"
+            [class.font-semibold]="isPricePresetActive(preset.gte, preset.lte)"
+            [class.shadow-sm]="isPricePresetActive(preset.gte, preset.lte)"
+            [class.bg-surface-container]="!isPricePresetActive(preset.gte, preset.lte)"
+            [class.text-on-surface-variant]="!isPricePresetActive(preset.gte, preset.lte)"
+            (click)="setPricePreset(preset.gte, preset.lte)"
+          >
+            {{ preset.label }}
+          </button>
+        }
+      </div>
+      <div class="flex items-center gap-space-xs">
+        <div
+          class="flex-1 rounded-lg bg-surface-container-low px-2 py-1.5 transition-colors focus-within:bg-surface-container"
+        >
+          <label class="block text-[10px] font-semibold text-outline uppercase"
+            >Min (EGP)</label
+          >
+          <input
+            type="number"
+            class="w-full bg-transparent text-label-md font-semibold text-on-surface focus:outline-none"
+            [value]="priceGte() ?? ''"
+            (input)="
+              priceGte.set($any($event.target).value ? +$any($event.target).value : null)
+            "
+          />
+        </div>
+        <span class="font-bold text-outline-variant">—</span>
+        <div
+          class="flex-1 rounded-lg bg-surface-container-low px-2 py-1.5 transition-colors focus-within:bg-surface-container"
+        >
+          <label class="block text-[10px] font-semibold text-outline uppercase"
+            >Max (EGP)</label
+          >
+          <input
+            type="number"
+            class="w-full bg-transparent text-label-md font-semibold text-on-surface focus:outline-none"
+            [value]="priceLte() ?? ''"
+            (input)="
+              priceLte.set($any($event.target).value ? +$any($event.target).value : null)
+            "
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="h-px bg-surface-container-low"></div>
+
+    <!-- Categories -->
+    <div class="flex flex-col gap-space-xs">
+      <span class="text-label-lg font-semibold text-on-surface">Categories</span>
+      <div class="mt-space-xs flex max-h-56 flex-col gap-1.5 overflow-y-auto pr-1">
+        @for (category of categories(); track category._id) {
+          <label
+            class="flex cursor-pointer items-center justify-between rounded-lg p-1.5 text-on-surface-variant transition-colors hover:bg-surface-container-low"
+            [class.bg-surface-container-low]="
+              selectedCategories().includes(category._id)
+            "
+            [class.font-semibold]="selectedCategories().includes(category._id)"
+            [class.text-on-surface]="selectedCategories().includes(category._id)"
+          >
+            <div class="flex items-center gap-space-xs">
+              <input
+                type="checkbox"
+                class="h-4 w-4 cursor-pointer rounded accent-primary"
+                [checked]="selectedCategories().includes(category._id)"
+                (change)="toggleCategory(category._id)"
+              />
+              <span
+                class="text-body-sm"
+                [class.text-primary]="selectedCategories().includes(category._id)"
+                >{{ category.name }}</span
+              >
+            </div>
+          </label>
+        }
+      </div>
+    </div>
+
+    <div class="h-px bg-surface-container-low"></div>
+
+    <!-- Subcategories -->
+    <div class="flex flex-col gap-space-xs">
+      <span class="text-label-lg font-semibold text-on-surface">Subcategories</span>
+      <div class="mt-space-xs flex max-h-48 flex-col gap-1.5 overflow-y-auto pr-1">
+        @for (subcategory of subcategories(); track subcategory._id) {
+          <label
+            class="flex cursor-pointer items-center justify-between rounded-lg p-1.5 text-on-surface-variant transition-colors hover:bg-surface-container-low"
+            [class.bg-surface-container-low]="
+              selectedSubcategory() === subcategory._id
+            "
+            [class.font-semibold]="selectedSubcategory() === subcategory._id"
+            [class.text-primary]="selectedSubcategory() === subcategory._id"
+          >
+            <div class="flex items-center gap-space-xs">
+              <input
+                type="checkbox"
+                class="h-4 w-4 cursor-pointer rounded accent-primary"
+                [checked]="selectedSubcategory() === subcategory._id"
+                (change)="selectSubcategory(subcategory._id)"
+              />
+              <span class="text-body-sm">{{ subcategory.name }}</span>
+            </div>
+          </label>
+        } @empty {
+          <p class="text-body-sm text-on-surface-variant">No subcategories</p>
+        }
+      </div>
+    </div>
+
+    <div class="h-px bg-surface-container-low"></div>
+
+    <!-- Brands -->
+    <div class="flex flex-col gap-space-xs">
+      <span class="text-label-lg font-semibold text-on-surface">Brands</span>
+      <div class="relative mt-1">
+        <span
+          class="material-symbols-outlined absolute top-1/2 left-2.5 -translate-y-1/2 text-[16px] text-outline"
+          >search</span
+        >
+        <input
+          type="search"
+          placeholder="Search brand..."
+          class="w-full rounded-lg bg-surface-container-low py-1.5 pr-2 pl-8 text-body-sm text-on-surface placeholder:text-outline focus:bg-surface-container focus:outline-none"
+          [value]="brandSearch()"
+          (input)="brandSearch.set($any($event.target).value)"
+        />
+      </div>
+      <div class="mt-space-xs flex max-h-48 flex-col gap-1.5 overflow-y-auto pr-1">
+        @for (brand of filteredBrands(); track brand._id) {
+          <label
+            class="flex cursor-pointer items-center gap-space-xs rounded-lg p-1.5 text-on-surface-variant transition-colors hover:bg-surface-container-low"
+            [class.bg-surface-container-low]="selectedBrands().includes(brand._id)"
+            [class.font-semibold]="selectedBrands().includes(brand._id)"
+            [class.text-primary]="selectedBrands().includes(brand._id)"
+          >
+            <input
+              type="checkbox"
+              class="h-4 w-4 cursor-pointer rounded accent-primary"
+              [checked]="selectedBrands().includes(brand._id)"
+              (change)="toggleBrand(brand._id)"
+            />
+            <span class="text-body-sm">{{ brand.name }}</span>
+          </label>
+        }
+      </div>
+    </div>
+
+    <div class="h-px bg-surface-container-low"></div>
+
+    <!-- Ratings -->
+    <div class="flex flex-col gap-space-xs">
+      <span class="text-label-lg font-semibold text-on-surface">Ratings</span>
+      <div class="mt-1 flex flex-col gap-1">
+        @for (option of ratingOptions; track option.value) {
+          <label
+            class="flex cursor-pointer items-center justify-between rounded-lg p-1.5 transition-colors hover:bg-surface-container-low"
+            [class.bg-surface-container-low]="
+              selectedRatingsAverageGte() === option.value
+            "
+          >
+            <div class="flex items-center gap-2">
+              <input
+                type="radio"
+                name="rating"
+                class="cursor-pointer accent-primary"
+                [checked]="selectedRatingsAverageGte() === option.value"
+                (change)="selectRating(option.value)"
+              />
+              <div class="flex items-center text-amber-500">
+                @for (star of [1, 2, 3, 4, 5]; track star) {
+                  <span
+                    class="material-symbols-outlined text-[18px]"
+                    [class.text-outline-variant]="star > option.filled"
+                    [style.font-variation-settings]="
+                      star <= option.filled ? `'FILL' 1` : null
+                    "
+                    >star</span
+                  >
+                }
+              </div>
+              <span class="text-body-sm text-on-surface-variant">{{
+                option.label
+              }}</span>
+            </div>
+          </label>
+        }
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-space-xs pt-space-xs">
+      <button
+        type="button"
+        class="flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-primary text-label-md font-semibold text-on-primary shadow-sm transition-all hover:bg-on-primary-fixed-variant"
+        (click)="onApply()"
+      >
+        <span class="material-symbols-outlined text-[18px]">check</span>
+        Apply Filters
+      </button>
+      <button
+        type="button"
+        class="flex h-9 w-full cursor-pointer items-center justify-center gap-1 rounded-lg bg-surface-container text-label-sm font-semibold text-on-surface-variant transition-colors hover:bg-surface-container-high"
+        (click)="onClear()"
+      >
+        Clear All Filters
+      </button>
+    </div>
+  </div>
+</aside>

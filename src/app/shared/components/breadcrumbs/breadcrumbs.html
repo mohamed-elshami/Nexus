@@ -1,0 +1,24 @@
+<nav
+  aria-label="Breadcrumb"
+  class="flex flex-wrap items-center gap-space-xs text-label-md text-on-surface-variant"
+>
+  @for (item of items(); track item.label; let last = $last) {
+    @if (!last && item.path) {
+      <a
+        [routerLink]="item.path"
+        class="flex items-center gap-1 transition-colors hover:text-primary"
+      >
+        @if ($first) {
+          <span class="material-symbols-outlined text-[16px]">home</span>
+        }
+        {{ item.label }}
+      </a>
+      <span class="text-outline-variant">/</span>
+    } @else if (!last) {
+      <span>{{ item.label }}</span>
+      <span class="text-outline-variant">/</span>
+    } @else {
+      <span class="font-semibold text-on-surface">{{ item.label }}</span>
+    }
+  }
+</nav>

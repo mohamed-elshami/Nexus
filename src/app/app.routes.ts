@@ -10,14 +10,19 @@ export const routes: Routes = [
       {
         path: 'products',
         loadComponent: () =>
-          import('./features/products/pages/products/products').then(
-            (m) => m.Products,
+          import('./features/products/pages/products/products').then((m) => m.Products),
+      },
+      {
+        path: 'products/:id',
+        loadComponent: () =>
+          import('./features/products/pages/product-details/product-details').then(
+            (m) => m.ProductDetails,
           ),
       },
     ],
   },
   {
-    path: 'auth',
+    path: '',
     component: AuthLayout,
     children: [],
   },

@@ -1,5 +1,5 @@
 <header
-  class="fixed inset-x-0 top-0 z-50 bg-surface-container-lowest/95 shadow-[0_1px_8px_rgba(0,0,0,0.04)] backdrop-blur-xl"
+  class="fixed inset-x-0 top-0 z-[100] bg-surface-container-lowest/95 shadow-[0_1px_8px_rgba(0,0,0,0.04)] backdrop-blur-xl"
 >
   <!-- Promo bar -->
   <div class="bg-primary px-margin-mobile py-1 text-on-primary md:px-margin">
@@ -22,7 +22,7 @@
     <div class="flex shrink-0 items-center gap-space-sm">
       <button
         type="button"
-        class="flex h-10 w-10 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface lg:hidden"
+        class="flex size-10 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface lg:hidden"
         [attr.aria-expanded]="menuOpen()"
         aria-controls="mobile-nav"
         aria-label="Open menu"
@@ -42,7 +42,7 @@
         <div class="relative" (focusout)="onCategoryFocusOut($event)">
           <button
             type="button"
-            class="flex min-w-[9.5rem] cursor-pointer items-center gap-space-xs bg-transparent px-space-sm py-space-xs text-left text-label-md font-medium text-on-surface-variant focus:outline-none"
+            class="flex min-w-38 cursor-pointer items-center gap-space-xs bg-transparent px-space-sm py-space-xs text-left text-label-md font-medium text-on-surface-variant focus:outline-none"
             [attr.aria-expanded]="categoryMenuOpen()"
             aria-haspopup="listbox"
             (click)="toggleCategoryMenu()"
@@ -154,12 +154,8 @@
           >
         </div>
         <div class="hidden flex-col text-left sm:flex">
-          <span class="text-[11px] leading-none text-on-surface-variant"
-            >Cart Total</span
-          >
-          <span class="text-label-md leading-tight font-semibold text-on-surface"
-            >$0.00</span
-          >
+          <span class="text-[11px] leading-none text-on-surface-variant">Cart Total</span>
+          <span class="text-label-md leading-tight font-semibold text-on-surface">$0.00</span>
         </div>
       </a>
 
@@ -187,21 +183,21 @@
             <p class="text-body-sm text-on-surface-variant">Sign in to continue</p>
           </div>
           <a
-            routerLink="/profile"
+            routerLink="/account/profile"
             class="flex items-center gap-space-sm px-space-md py-space-xs text-label-md text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
           >
             <span class="material-symbols-outlined text-[18px]">person</span>
             Profile & Security
           </a>
           <a
-            routerLink="/addresses"
+            routerLink="/account/addresses"
             class="flex items-center gap-space-sm px-space-md py-space-xs text-label-md text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
           >
             <span class="material-symbols-outlined text-[18px]">home_pin</span>
             My Addresses
           </a>
           <a
-            routerLink="/orders"
+            routerLink="/account/orders"
             class="flex items-center gap-space-sm px-space-md py-space-xs text-label-md text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
           >
             <span class="material-symbols-outlined text-[18px]">package_2</span>
@@ -209,7 +205,7 @@
           </a>
           <div class="my-space-xs h-px bg-surface-container"></div>
           <a
-            routerLink="/auth"
+            routerLink="/login"
             class="flex items-center gap-space-sm px-space-md py-space-xs text-label-md text-error transition-colors hover:bg-error-container hover:text-on-error-container"
           >
             <span class="material-symbols-outlined text-[18px]">login</span>
@@ -228,15 +224,18 @@
       <div
         class="flex items-center gap-space-xs whitespace-nowrap text-label-md text-on-surface-variant"
       >
-        @for (category of categories(); track category._id; let i = $index) {
-          <a
-            [routerLink]="['/categories', category._id]"
+        @for (category of categories(); track category._id) {
+          <button
+            type="button"
             class="rounded-full px-space-sm py-1 transition-colors hover:bg-surface-container hover:text-on-surface"
-            [class.bg-surface-container-lowest]="i === 0"
-            [class.font-semibold]="i === 0"
-            [class.text-on-surface]="i === 0"
-            >{{ category.name }}</a
+            [class.bg-surface-container-lowest]="selectedCategoryId() === category._id"
+            [class.font-semibold]="selectedCategoryId() === category._id"
+            [class.text-on-surface]="selectedCategoryId() === category._id"
+            [class.text-primary]="selectedCategoryId() === category._id"
+            (click)="selectCategoryChip(category._id)"
           >
+            {{ category.name }}
+          </button>
         }
       </div>
       <div
@@ -251,14 +250,14 @@
   <!-- Mobile menu -->
   @if (menuOpen()) {
     <div
-      class="fixed inset-0 z-[60] bg-inverse-surface/40 lg:hidden"
+      class="fixed inset-0 z-60 bg-inverse-surface/40 lg:hidden"
       (click)="closeMenu()"
       aria-hidden="true"
     ></div>
 
     <aside
       id="mobile-nav"
-      class="fixed top-0 left-0 z-[70] flex h-dvh w-[min(100%,20rem)] flex-col bg-surface-container-lowest shadow-modal lg:hidden"
+      class="fixed top-0 left-0 z-70 flex h-dvh w-[min(100%,20rem)] animate-[in_300ms_ease-in-out] flex-col bg-surface-container-lowest shadow-modal lg:hidden"
       role="dialog"
       aria-modal="true"
       aria-label="Mobile navigation"
@@ -280,12 +279,8 @@
       </div>
 
       <div class="border-b border-outline-variant/20 p-space-md">
-        <div
-          class="flex h-11 items-center rounded-lg bg-surface-container-low px-space-sm"
-        >
-          <span class="material-symbols-outlined mr-space-xs text-[20px] text-outline"
-            >search</span
-          >
+        <div class="flex h-11 items-center rounded-lg bg-surface-container-low px-space-sm">
+          <span class="material-symbols-outlined mr-space-xs text-[20px] text-outline">search</span>
           <input
             class="w-full bg-transparent text-body-sm text-on-surface placeholder:text-outline focus:outline-none"
             placeholder="Search products..."
@@ -310,7 +305,7 @@
 
       <div class="border-t border-outline-variant/20 p-space-md">
         <a
-          routerLink="/auth"
+          routerLink="/login"
           class="flex h-11 w-full items-center justify-center gap-space-xs rounded-lg bg-primary text-label-lg font-semibold text-on-primary transition-colors hover:bg-on-primary-fixed-variant"
           (click)="closeMenu()"
         >

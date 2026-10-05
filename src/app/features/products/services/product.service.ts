@@ -29,12 +29,14 @@ export class ProductService {
   private readonly _products = signal<Product[]>([]);
   private readonly _product = signal<Product | null>(null);
   private readonly _pagination = signal<PaginationMetadata | null>(null);
+  private readonly _results = signal(0);
   private readonly _loading = signal(false);
   private readonly _error = signal<string | null>(null);
 
   readonly products = this._products.asReadonly();
   readonly product = this._product.asReadonly();
   readonly pagination = this._pagination.asReadonly();
+  readonly results = this._results.asReadonly();
   readonly loading = this._loading.asReadonly();
   readonly error = this._error.asReadonly();
 
@@ -61,6 +63,7 @@ export class ProductService {
                   this._error.set(err?.message ?? 'Failed to load products');
                   this._products.set([]);
                   this._pagination.set(null);
+                  this._results.set(0);
                 }
                 return of(null);
               }),
@@ -78,6 +81,7 @@ export class ProductService {
         }
         this._products.set(response.data);
         this._pagination.set(response.metadata);
+        this._results.set(response.results);
       });
 
     this.productByIdRequest$
@@ -153,6 +157,14 @@ export class ProductService {
     params.categories?.forEach((category) => {
       httpParams = httpParams.append('category[in]', category);
     });
+
+    if (params.subcategory) {
+      httpParams = httpParams.set('subcategory', params.subcategory);
+    }
+
+    if (params.ratingsAverageGte != null) {
+      httpParams = httpParams.set('ratingsAverage[gte]', params.ratingsAverageGte);
+    }
 
     return httpParams;
   }
