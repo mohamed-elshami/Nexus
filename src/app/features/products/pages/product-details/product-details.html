@@ -1,3 +1,804 @@
 <section class="container-nexus py-space-md">
-  <h1 class="font-display text-headline-lg text-on-surface">{{ id() }}</h1>
+  @if (loading() && !product()) {
+    <div class="flex min-h-80 flex-col items-center justify-center gap-space-sm text-on-surface-variant">
+      <span class="material-symbols-outlined animate-pulse text-[40px]">progress_activity</span>
+      <p class="text-body-md">Loading product…</p>
+    </div>
+  } @else if (error() && !product()) {
+    <div
+      class="rounded-xl bg-error-container px-space-md py-space-sm text-body-sm text-on-error-container"
+      role="alert"
+    >
+      {{ error() }}
+    </div>
+  } @else if (product(); as item) {
+    <!-- Breadcrumb & Stock Pills -->
+    <div
+      class="mb-space-lg flex flex-wrap items-center justify-between gap-space-sm text-label-md text-on-surface-variant"
+    >
+      <app-breadcrumbs [items]="breadcrumbItems()" />
+      <div class="flex flex-wrap items-center gap-space-sm">
+        <span
+          class="flex items-center gap-1 rounded-full bg-surface-container-high px-space-sm py-1 text-label-sm font-semibold"
+        >
+          <span class="material-symbols-outlined text-[14px] text-primary">tag</span>
+          SKU: {{ item._id }}
+        </span>
+        <span
+          class="flex items-center gap-1 rounded-full bg-secondary-container/40 px-space-sm py-1 text-label-sm font-semibold text-on-secondary-container"
+        >
+          <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-secondary"></span>
+          @if (item.quantity > 0) {
+            {{ item.quantity | number }} Units Ready to Ship
+          } @else {
+            Out of Stock
+          }
+        </span>
+      </div>
+    </div>
+
+    <!-- Gallery + Commerce -->
+    <div class="mb-space-xl grid grid-cols-1 items-start gap-space-xl lg:grid-cols-12">
+      <div class="flex flex-col gap-space-md lg:sticky lg:top-36 lg:col-span-7">
+        <div
+          class="flex flex-col gap-space-md md:flex-row md:items-stretch lg:flex-col"
+        >
+          @if (galleryImages().length) {
+            <div
+              class="scrollbar-hide order-2 grid grid-cols-4 gap-space-sm md:order-1 md:flex md:w-24 md:shrink-0 md:flex-col md:overflow-y-auto lg:order-2 lg:grid lg:w-full lg:grid-cols-4 lg:overflow-visible"
+            >
+              @for (image of galleryImages(); track image; let i = $index) {
+                <button
+                  type="button"
+                  class="relative aspect-square w-full shrink-0 overflow-hidden rounded-xl bg-surface-container-low p-0.5 transition-all"
+                  [class.ring-2]="activeImage() === image"
+                  [class.ring-primary]="activeImage() === image"
+                  [class.opacity-75]="activeImage() !== image"
+                  [class.hover:opacity-100]="activeImage() !== image"
+                  (click)="selectImage(image)"
+                >
+                  <img
+                    [src]="image"
+                    [alt]="item.title"
+                    class="h-full w-full rounded-lg object-cover mix-blend-multiply"
+                  />
+                  <span
+                    class="absolute right-1 bottom-1 rounded bg-surface-container-lowest/80 px-1 text-[10px] font-semibold text-on-surface backdrop-blur-xs"
+                  >
+                    {{ i === 0 ? 'Cover' : 'View ' + i }}
+                  </span>
+                </button>
+              }
+            </div>
+          }
+
+          <div
+            class="group relative order-1 min-w-0 flex-1 overflow-hidden rounded-2xl bg-surface-container-lowest shadow-sm md:order-2 lg:order-1"
+          >
+            <div class="absolute top-4 left-4 z-10 flex flex-col gap-2">
+              @if (item.sold > 100) {
+                <span
+                  class="flex items-center gap-1 rounded-lg bg-error px-space-sm py-1 text-label-sm font-bold text-on-error shadow-md"
+                >
+                  <span class="material-symbols-outlined text-[14px]">local_fire_department</span>
+                  Best Seller
+                </span>
+              }
+              @if (item.category?.name) {
+                <span
+                  class="rounded-lg bg-surface-container-lowest/90 px-space-sm py-1 text-label-sm font-semibold text-on-surface shadow-sm backdrop-blur-md"
+                >
+                  {{ item.category.name }}
+                </span>
+              }
+            </div>
+
+            <div
+              class="absolute top-4 right-4 z-10 flex flex-col gap-2 opacity-90 transition-opacity group-hover:opacity-100"
+            >
+              <button
+                type="button"
+                class="flex h-10 w-10 items-center justify-center rounded-full bg-surface-container-lowest text-on-surface shadow-md transition-colors hover:bg-surface-container"
+                title="Zoom In"
+              >
+                <span class="material-symbols-outlined text-[20px]">zoom_in</span>
+              </button>
+              <button
+                type="button"
+                class="flex h-10 w-10 items-center justify-center rounded-full bg-surface-container-lowest text-on-surface shadow-md transition-colors hover:text-error"
+                aria-label="Quick favorite"
+                (click)="toggleWishlist()"
+              >
+                <span
+                  class="material-symbols-outlined text-[20px] transition-colors"
+                  [class.text-error]="wishlistActive()"
+                  [style.font-variation-settings]="wishlistActive() ? `'FILL' 1` : null"
+                  >favorite</span
+                >
+              </button>
+            </div>
+
+            @if (galleryImages().length > 1) {
+              <button
+                type="button"
+                class="absolute top-1/2 left-3 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-surface-container-lowest/90 text-on-surface shadow-md backdrop-blur transition-colors hover:bg-surface-container md:flex lg:hidden"
+                aria-label="Previous image"
+                (click)="prevImage()"
+              >
+                <span class="material-symbols-outlined text-[20px]">chevron_left</span>
+              </button>
+              <button
+                type="button"
+                class="absolute top-1/2 right-3 z-10 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-surface-container-lowest/90 text-on-surface shadow-md backdrop-blur transition-colors hover:bg-surface-container md:flex lg:hidden"
+                aria-label="Next image"
+                (click)="nextImage()"
+              >
+                <span class="material-symbols-outlined text-[20px]">chevron_right</span>
+              </button>
+            }
+
+            <div
+              class="flex aspect-4/5 items-center justify-center overflow-hidden bg-surface-container-low"
+            >
+              <img
+                [src]="activeImage()"
+                [alt]="item.title"
+                class="h-full w-full cursor-crosshair object-cover object-top mix-blend-multiply transition-transform duration-500 ease-out hover:scale-105"
+              />
+            </div>
+
+            <div
+              class="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest/80 to-transparent p-space-md pt-space-lg"
+            >
+              <div class="flex items-center gap-space-xs text-label-sm text-on-surface">
+                <span class="material-symbols-outlined text-[18px] text-secondary">verified</span>
+                <span>100% Genuine {{ item.brand?.name || 'Nexus' }} Merchandise</span>
+              </div>
+              <span class="text-label-sm font-medium text-on-surface-variant">
+                @if (galleryImages().length > 1) {
+                  {{ activeImageIndex() + 1 }} / {{ galleryImages().length }}
+                } @else if (item.quantity > 0) {
+                  In stock & ready
+                } @else {
+                  Currently unavailable
+                }
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="flex items-center justify-between rounded-xl bg-surface-container-low p-space-md"
+        >
+          <div class="flex items-center gap-space-sm">
+            <div class="flex -space-x-2 overflow-hidden">
+              <span
+                class="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 text-label-sm font-bold text-primary"
+                >EG</span
+              >
+              <span
+                class="flex h-8 w-8 items-center justify-center rounded-full bg-secondary-container text-label-sm font-bold text-on-secondary-container"
+                >CA</span
+              >
+              <span
+                class="flex h-8 w-8 items-center justify-center rounded-full bg-tertiary-fixed text-label-sm font-bold text-on-tertiary-fixed"
+                >AL</span
+              >
+            </div>
+            <div class="flex flex-col">
+              <span class="text-label-sm font-semibold text-on-surface"
+                >Trending in Cairo & Alexandria</span
+              >
+              <span class="text-body-sm text-on-surface-variant"
+                >97% of buyers recommend this piece</span
+              >
+            </div>
+          </div>
+          <div class="hidden items-center gap-1 text-label-sm font-semibold text-primary sm:flex">
+            <span class="material-symbols-outlined text-[18px]">verified_user</span>
+            Guaranteed Quality
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-space-lg lg:col-span-5">
+        <div
+          class="flex flex-col gap-space-md rounded-2xl bg-surface-container-lowest p-space-lg shadow-sm"
+        >
+          <div class="flex items-center justify-between gap-space-sm">
+            @if (item.brand?.name) {
+              <a
+                routerLink="/products"
+                class="inline-flex items-center gap-1 rounded-md bg-surface-container px-3 py-1 text-label-md font-bold tracking-wider text-primary uppercase transition-colors hover:bg-primary hover:text-on-primary"
+              >
+                <span class="material-symbols-outlined text-[16px]">storefront</span>
+                {{ item.brand.name }} Official Store
+              </a>
+            }
+            <span class="text-label-sm text-on-surface-variant">Style #{{ item.slug }}</span>
+          </div>
+
+          <h1 class="font-display text-headline-lg font-bold tracking-tight text-on-surface">
+            {{ item.title }}
+          </h1>
+
+          <div
+            class="flex flex-wrap items-center gap-space-sm rounded-xl bg-surface-container-low/50 p-space-sm"
+          >
+            <div class="flex items-center gap-0.5 text-amber-500">
+              @for (state of starStates(); track $index) {
+                <span
+                  class="material-symbols-outlined text-[20px]"
+                  [class.text-outline-variant]="state === 'empty'"
+                  [style.font-variation-settings]="state !== 'empty' ? `'FILL' 1` : null"
+                  >star</span
+                >
+              }
+            </div>
+            <span class="font-display text-headline-sm font-bold text-on-surface">{{
+              item.ratingsAverage
+            }}</span>
+            <span class="text-body-sm text-on-surface-variant">•</span>
+            <a
+              href="#reviews-section"
+              class="text-label-md font-semibold text-primary hover:underline"
+            >
+              {{ item.ratingsQuantity | number }} customer ratings
+            </a>
+            <span class="text-body-sm text-on-surface-variant">•</span>
+            <span class="text-label-sm font-medium text-secondary">High Demand Pick</span>
+          </div>
+
+          <div class="flex flex-col gap-1 py-space-xs">
+            <div class="flex flex-wrap items-baseline gap-space-sm">
+              <span class="font-display text-display-lg font-bold tracking-tight text-primary">
+                {{ item.price | number }}
+                <span class="text-headline-md font-semibold">EGP</span>
+              </span>
+            </div>
+            <p class="text-label-sm text-on-surface-variant">
+              Prices inclusive of all standard VAT & duties in Egypt.
+            </p>
+          </div>
+
+          <div class="flex items-start gap-space-sm rounded-xl bg-secondary-container/20 p-space-md">
+            <div class="mt-0.5 shrink-0 rounded-lg bg-secondary p-2 text-on-secondary">
+              <span class="material-symbols-outlined text-[20px]">bolt</span>
+            </div>
+            <div class="flex-1">
+              <div class="flex items-center justify-between gap-space-sm">
+                <span class="text-label-md font-bold text-on-secondary-fixed-variant"
+                  >Fast Selling Alert!</span
+                >
+                <span class="text-label-sm font-bold text-secondary">In High Demand</span>
+              </div>
+              <p class="mt-0.5 text-body-sm text-on-surface-variant">
+                Over
+                <strong class="font-semibold text-on-surface"
+                  >{{ item.sold | number }} units sold so far</strong
+                >. Only
+                <strong>{{ item.quantity | number }} items left in stock</strong> for immediate
+                fulfillment.
+              </p>
+              <div class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-container">
+                <div
+                  class="h-full rounded-full bg-secondary"
+                  [style.width.%]="stockProgress()"
+                ></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-space-sm pt-space-md">
+            <div class="flex items-center gap-space-sm">
+              <div
+                class="flex h-12 items-center rounded-xl bg-surface-container-low px-2 shadow-inner"
+              >
+                <button
+                  type="button"
+                  class="flex h-8 w-8 items-center justify-center rounded-lg text-on-surface transition-colors hover:bg-surface-container-lowest active:scale-95"
+                  aria-label="Decrease quantity"
+                  [disabled]="quantity() <= 1"
+                  (click)="decreaseQty()"
+                >
+                  <span class="material-symbols-outlined text-[18px]">remove</span>
+                </button>
+                <input
+                  type="number"
+                  class="w-14 bg-transparent text-center font-display text-headline-sm font-bold text-on-surface [appearance:textfield] focus:outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  [min]="1"
+                  [max]="item.quantity"
+                  [value]="quantity()"
+                  (input)="onQtyInput($any($event.target).value)"
+                />
+                <button
+                  type="button"
+                  class="flex h-8 w-8 items-center justify-center rounded-lg text-on-surface transition-colors hover:bg-surface-container-lowest active:scale-95"
+                  aria-label="Increase quantity"
+                  [disabled]="quantity() >= item.quantity"
+                  (click)="increaseQty()"
+                >
+                  <span class="material-symbols-outlined text-[18px]">add</span>
+                </button>
+              </div>
+
+              <button
+                type="button"
+                class="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-label-lg font-bold text-on-primary shadow-md transition-all hover:bg-on-primary-fixed-variant active:scale-[0.98] disabled:opacity-50"
+                [disabled]="item.quantity <= 0"
+                (click)="onAddToCart()"
+              >
+                <span class="material-symbols-outlined text-[20px]">shopping_bag</span>
+                Add to Cart ({{ lineTotal() | number }} EGP)
+              </button>
+
+              <button
+                type="button"
+                class="flex h-12 w-12 items-center justify-center rounded-xl bg-surface-container-low text-on-surface transition-colors hover:bg-surface-container hover:text-error active:scale-95"
+                aria-label="Save to wishlist"
+                (click)="toggleWishlist()"
+              >
+                <span
+                  class="material-symbols-outlined text-[22px] transition-colors"
+                  [class.text-error]="wishlistActive()"
+                  [style.font-variation-settings]="wishlistActive() ? `'FILL' 1` : null"
+                  >{{ wishlistActive() ? 'favorite' : 'favorite_border' }}</span
+                >
+              </button>
+            </div>
+
+            <button
+              type="button"
+              class="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-surface-container-highest text-label-lg font-bold text-primary transition-all hover:bg-primary-fixed active:scale-[0.98] disabled:opacity-50"
+              [disabled]="item.quantity <= 0"
+              (click)="onBuyNow()"
+            >
+              <span class="material-symbols-outlined text-[20px]">flash_on</span>
+              Instant Checkout with 1-Click
+            </button>
+          </div>
+
+          @if (cartAlertVisible()) {
+            <div
+              class="flex items-center justify-between rounded-xl bg-primary p-space-sm text-on-primary"
+            >
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[20px]">check_circle</span>
+                <span class="text-label-md">Added {{ item.title }} to cart!</span>
+              </div>
+              <a routerLink="/cart" class="text-label-sm font-bold underline">View Cart</a>
+            </div>
+          }
+        </div>
+
+        <div
+          class="flex flex-col gap-space-md rounded-2xl bg-surface-container-lowest p-space-lg shadow-sm"
+        >
+          <h3 class="flex items-center gap-2 text-label-lg font-bold text-on-surface">
+            <span class="material-symbols-outlined text-[20px] text-primary">local_shipping</span>
+            Delivery & Satisfaction Guarantee
+          </h3>
+          <div class="grid grid-cols-1 gap-space-sm text-body-sm">
+            <div class="flex items-start gap-space-sm rounded-xl bg-surface-container-low p-space-sm">
+              <span class="material-symbols-outlined mt-0.5 shrink-0 text-[22px] text-secondary"
+                >rocket_launch</span
+              >
+              <div>
+                <strong class="block font-semibold text-on-surface">Free Shipping Available</strong>
+                <span class="text-on-surface-variant"
+                  >Eligible for free express delivery on orders exceeding 99 EGP.</span
+                >
+              </div>
+            </div>
+            <div class="flex items-start gap-space-sm rounded-xl bg-surface-container-low p-space-sm">
+              <span class="material-symbols-outlined mt-0.5 shrink-0 text-[22px] text-primary"
+                >schedule</span
+              >
+              <div>
+                <strong class="block font-semibold text-on-surface">Delivery Within 48 Hours</strong>
+                <span class="text-on-surface-variant"
+                  >Direct fulfillment to Cairo, Giza & adjacent metro regions. Order before 3 PM for
+                  next-day dispatch.</span
+                >
+              </div>
+            </div>
+            <div class="flex items-start gap-space-sm rounded-xl bg-surface-container-low p-space-sm">
+              <span class="material-symbols-outlined mt-0.5 shrink-0 text-[22px] text-tertiary"
+                >assignment_return</span
+              >
+              <div>
+                <strong class="block font-semibold text-on-surface">14 Days Easy Return Policy</strong>
+                <span class="text-on-surface-variant"
+                  >Hassle-free doorstep returns and full refund in original payment method or
+                  instant store wallet.</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Specs -->
+    <div class="mb-space-xl grid grid-cols-1 gap-space-lg md:grid-cols-12">
+      <div
+        class="flex flex-col justify-between rounded-2xl bg-surface-container-lowest p-space-lg shadow-sm md:col-span-7"
+      >
+        <div>
+          <div class="mb-space-md flex items-center justify-between gap-space-sm">
+            <h2 class="font-display text-headline-md font-bold tracking-tight text-on-surface">
+              Product Specifications
+            </h2>
+            @if (item.brand?.name) {
+              <span class="rounded bg-surface-container px-2 py-1 text-label-sm text-on-surface-variant">
+                Authentic {{ item.brand.name }} Item
+              </span>
+            }
+          </div>
+          <p class="mb-space-lg text-body-md leading-relaxed text-on-surface-variant">
+            {{ item.description }}
+          </p>
+          <div class="grid grid-cols-2 gap-x-space-lg gap-y-space-md text-body-sm">
+            <div class="rounded-xl bg-surface-container-low p-space-sm">
+              <span class="block text-label-sm text-on-surface-variant">Brand</span>
+              <strong class="text-body-md font-semibold text-on-surface">{{
+                item.brand?.name || '—'
+              }}</strong>
+            </div>
+            <div class="rounded-xl bg-surface-container-low p-space-sm">
+              <span class="block text-label-sm text-on-surface-variant">Department</span>
+              <strong class="text-body-md font-semibold text-on-surface">{{
+                item.category?.name || '—'
+              }}</strong>
+            </div>
+            <div class="rounded-xl bg-surface-container-low p-space-sm">
+              <span class="block text-label-sm text-on-surface-variant">Units Sold</span>
+              <strong class="text-body-md font-semibold text-on-surface">{{
+                item.sold | number
+              }}</strong>
+            </div>
+            <div class="rounded-xl bg-surface-container-low p-space-sm">
+              <span class="block text-label-sm text-on-surface-variant">Available Stock</span>
+              <strong class="text-body-md font-semibold text-on-surface">{{
+                item.quantity | number
+              }}</strong>
+            </div>
+            <div class="rounded-xl bg-surface-container-low p-space-sm">
+              <span class="block text-label-sm text-on-surface-variant">Average Rating</span>
+              <strong class="text-body-md font-semibold text-on-surface">{{
+                item.ratingsAverage
+              }}</strong>
+            </div>
+            <div class="rounded-xl bg-surface-container-low p-space-sm">
+              <span class="block text-label-sm text-on-surface-variant">Category Hierarchy</span>
+              <strong class="block truncate text-body-md font-semibold text-on-surface">
+                {{ item.category?.name || '—' }}
+                @if (subcategoryLabel()) {
+                  > {{ subcategoryLabel() }}
+                }
+              </strong>
+            </div>
+          </div>
+        </div>
+        <div
+          class="mt-space-lg flex items-center justify-between pt-space-md text-label-sm text-on-surface-variant"
+        >
+          <span class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px]">dry_cleaning</span>
+            Dry clean or delicate cold wash
+          </span>
+          <span class="flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px]">iron</span>
+            Low heat iron only
+          </span>
+        </div>
+      </div>
+
+      <div
+        class="relative flex flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary-container to-tertiary p-space-lg text-on-primary shadow-sm md:col-span-5"
+      >
+        <div
+          class="pointer-events-none absolute -right-12 -bottom-12 h-48 w-48 rounded-full bg-white/10 blur-2xl"
+        ></div>
+        <div class="relative z-10 flex flex-col gap-space-md">
+          <span class="text-label-sm font-bold tracking-widest text-on-primary-container uppercase"
+            >Fabric Heritage</span
+          >
+          <h3 class="font-display text-headline-lg font-bold text-on-primary">
+            Engineered Drape & Everyday Softness
+          </h3>
+          <p class="text-body-md text-on-primary-container">
+            {{ item.description }}
+          </p>
+        </div>
+        <div class="relative z-10 mt-space-lg grid grid-cols-2 gap-space-sm">
+          <div class="rounded-xl bg-surface-container-lowest/15 p-space-sm backdrop-blur-md">
+            <span class="font-display text-headline-md font-bold text-on-primary">{{
+              item.ratingsAverage
+            }}</span>
+            <span class="block text-label-sm text-on-primary-container">Customer Score</span>
+          </div>
+          <div class="rounded-xl bg-surface-container-lowest/15 p-space-sm backdrop-blur-md">
+            <span class="font-display text-headline-md font-bold text-on-primary">{{
+              item.sold | number
+            }}</span>
+            <span class="block text-label-sm text-on-primary-container">Units Sold</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reviews -->
+    <div
+      id="reviews-section"
+      class="mb-space-xl scroll-mt-28 rounded-2xl bg-surface-container-lowest p-space-lg shadow-sm"
+    >
+      <div
+        class="flex flex-col justify-between gap-space-md pb-space-lg md:flex-row md:items-center"
+      >
+        <div>
+          <h2 class="font-display text-headline-lg font-bold text-on-surface">
+            Customer Reviews & Ratings
+          </h2>
+          <p class="text-body-sm text-on-surface-variant">
+            Real authenticated reviews verified through customer deliveries in Egypt.
+          </p>
+        </div>
+        <button
+          type="button"
+          class="flex items-center justify-center gap-2 self-start rounded-xl bg-primary px-space-md py-2.5 text-label-md font-bold text-on-primary shadow-sm transition-colors hover:bg-on-primary-fixed-variant md:self-auto"
+          (click)="toggleWriteReview()"
+        >
+          <span class="material-symbols-outlined text-[18px]">rate_review</span>
+          Write a Review
+        </button>
+      </div>
+
+      <div
+        class="mb-space-lg grid grid-cols-1 items-center gap-space-lg rounded-2xl bg-surface-container-low p-space-lg lg:grid-cols-12"
+      >
+        <div
+          class="flex flex-col items-center justify-center py-space-sm text-center lg:col-span-4"
+        >
+          <span class="font-display text-display-lg font-bold text-on-surface">{{
+            item.ratingsAverage
+          }}</span>
+          <div class="my-1 flex items-center gap-1 text-amber-500">
+            @for (state of starStates(); track $index) {
+              <span
+                class="material-symbols-outlined text-[24px]"
+                [class.text-outline-variant]="state === 'empty'"
+                [style.font-variation-settings]="state !== 'empty' ? `'FILL' 1` : null"
+                >star</span
+              >
+            }
+          </div>
+          <span class="text-label-md font-semibold text-on-surface">Overall Customer Rating</span>
+          <span class="text-body-sm text-on-surface-variant"
+            >Based on {{ item.ratingsQuantity | number }} global ratings</span
+          >
+        </div>
+
+        <div class="flex flex-col gap-2 lg:col-span-8">
+          @for (row of ratingBreakdown(); track row.star) {
+            <div class="flex items-center gap-space-sm text-label-sm">
+              <span class="flex w-12 items-center gap-0.5 font-semibold text-on-surface">
+                {{ row.star }}
+                <span
+                  class="material-symbols-outlined text-[12px] text-amber-500"
+                  style="font-variation-settings: 'FILL' 1"
+                  >star</span
+                >
+              </span>
+              <div class="h-3 flex-1 overflow-hidden rounded-full bg-surface-container">
+                <div
+                  class="h-full rounded-full bg-amber-500 transition-all duration-700"
+                  [style.width.%]="row.percent"
+                ></div>
+              </div>
+              <span class="w-10 text-right font-medium text-on-surface-variant"
+                >{{ row.percent }}%</span
+              >
+              <span class="hidden text-outline sm:inline">({{ row.count }})</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      @if (writeReviewOpen()) {
+        <div class="mb-space-lg rounded-2xl bg-surface-container-high/40 p-space-lg">
+          <h3 class="mb-space-xs font-display text-headline-sm font-bold text-on-surface">
+            Share Your Experience with {{ item.title }}
+          </h3>
+          <p class="mb-space-md text-body-sm text-on-surface-variant">
+            Your review helps shoppers find their best wardrobe pieces.
+          </p>
+          <div class="flex max-w-2xl flex-col gap-space-md">
+            <div>
+              <label class="mb-1 block text-label-sm font-semibold text-on-surface"
+                >Your Overall Rating</label
+              >
+              <div class="flex items-center gap-1">
+                @for (star of [1, 2, 3, 4, 5]; track star) {
+                  <button
+                    type="button"
+                    class="text-amber-500 transition-transform hover:scale-110"
+                    [class.text-outline-variant]="star > draftRating()"
+                    (click)="setDraftRating(star)"
+                  >
+                    <span
+                      class="material-symbols-outlined text-[28px]"
+                      [style.font-variation-settings]="
+                        star <= draftRating() ? `'FILL' 1` : null
+                      "
+                      >star</span
+                    >
+                  </button>
+                }
+                <span class="ml-2 text-label-sm font-bold text-primary">{{
+                  draftRatingLabel()
+                }}</span>
+              </div>
+            </div>
+            <div>
+              <label class="mb-1 block text-label-sm font-semibold text-on-surface"
+                >Your Detailed Comment</label
+              >
+              <textarea
+                rows="3"
+                class="w-full rounded-xl bg-surface-container-lowest p-space-md text-body-sm text-on-surface shadow-xs placeholder:text-outline focus:ring-2 focus:ring-primary focus:outline-none"
+                placeholder="Tell other shoppers about the material, sizing, and overall experience..."
+                [value]="draftComment()"
+                (input)="draftComment.set($any($event.target).value)"
+              ></textarea>
+            </div>
+            <div class="flex items-center gap-space-sm">
+              <button
+                type="button"
+                class="rounded-xl bg-primary px-space-lg py-2.5 text-label-md font-bold text-on-primary transition-colors hover:bg-on-primary-fixed-variant"
+                (click)="submitReview()"
+              >
+                Submit Review
+              </button>
+              <button
+                type="button"
+                class="rounded-xl bg-surface-container px-space-md py-2.5 text-label-md text-on-surface transition-colors hover:bg-surface-container-highest"
+                (click)="toggleWriteReview()"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (reviews().length) {
+        <div class="flex flex-col gap-space-md">
+          @for (review of reviews(); track review._id) {
+            <article
+              class="flex flex-col gap-space-xs rounded-xl bg-surface-container-low p-space-md transition-colors hover:bg-surface-container"
+            >
+              <div class="flex flex-wrap items-center justify-between gap-space-xs">
+                <div class="flex items-center gap-space-sm">
+                  <div
+                    class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-label-md font-bold text-primary uppercase"
+                  >
+                    {{ (review.user?.name || 'U').slice(0, 2) }}
+                  </div>
+                  <div class="flex flex-col">
+                    <div class="flex items-center gap-2">
+                      <span class="text-label-md font-bold text-on-surface">{{
+                        review.user?.name || 'Customer'
+                      }}</span>
+                      <span
+                        class="flex items-center gap-0.5 rounded-full bg-secondary-container/40 px-2 py-0.5 text-[10px] font-semibold text-on-secondary-container"
+                      >
+                        <span class="material-symbols-outlined text-[12px]">verified</span>
+                        Verified Buyer
+                      </span>
+                    </div>
+                    <span class="text-label-sm text-outline"
+                      >User ID: {{ review.user?._id || '—' }}</span
+                    >
+                  </div>
+                </div>
+                <div class="flex items-center gap-space-sm">
+                  <div class="flex items-center text-amber-500">
+                    @for (star of [1, 2, 3, 4, 5]; track star) {
+                      <span
+                        class="material-symbols-outlined text-[18px]"
+                        [class.text-outline-variant]="star > review.rating"
+                        [style.font-variation-settings]="
+                          star <= review.rating ? `'FILL' 1` : null
+                        "
+                        >star</span
+                      >
+                    }
+                  </div>
+                  <span class="text-label-sm font-medium text-on-surface-variant">{{
+                    review.createdAt | date: 'MMMM y'
+                  }}</span>
+                </div>
+              </div>
+              <p class="mt-1 text-body-md leading-relaxed text-on-surface">{{ review.review }}</p>
+              <div class="flex items-center gap-space-md pt-space-xs text-label-sm text-on-surface-variant">
+                <button type="button" class="flex items-center gap-1 transition-colors hover:text-primary">
+                  <span class="material-symbols-outlined text-[16px]">thumb_up</span>
+                  Helpful
+                </button>
+                <span class="opacity-30">•</span>
+                <button type="button" class="transition-colors hover:text-primary">
+                  Report comment
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      } @else {
+        <p class="text-body-md text-on-surface-variant">No reviews yet for this product.</p>
+      }
+    </div>
+
+    <!-- Related -->
+    @if (relatedProducts().length) {
+      <div class="mb-space-xl flex flex-col gap-space-md">
+        <div class="flex items-center justify-between">
+          <div>
+            <span class="text-label-sm font-bold tracking-widest text-primary uppercase"
+              >More From {{ item.brand?.name || item.category?.name || 'Nexus' }}</span
+            >
+            <h2 class="font-display text-headline-lg font-bold tracking-tight text-on-surface">
+              Complete The Wardrobe
+            </h2>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-space-md sm:grid-cols-2 lg:grid-cols-4">
+          @for (related of relatedProducts(); track related._id) {
+            <a
+              [routerLink]="['/products', related._id]"
+              class="group flex flex-col justify-between rounded-2xl bg-surface-container-lowest p-space-sm shadow-sm transition-all hover:shadow-md"
+            >
+              <div
+                class="relative mb-space-sm aspect-square overflow-hidden rounded-xl bg-surface-container-low"
+              >
+                <img
+                  [src]="related.imageCover"
+                  [alt]="related.title"
+                  class="h-full w-full object-cover mix-blend-multiply transition-transform duration-300 group-hover:scale-105"
+                />
+                @if (related.brand?.name) {
+                  <span
+                    class="absolute top-2 left-2 rounded bg-surface-container-lowest/90 px-2 py-0.5 text-label-sm font-semibold text-primary"
+                  >
+                    {{ related.brand.name }}
+                  </span>
+                }
+              </div>
+              <div class="flex flex-col gap-1 px-1">
+                <span class="text-label-sm text-on-surface-variant">{{
+                  related.category?.name
+                }}</span>
+                <h4
+                  class="truncate font-display text-headline-sm font-semibold text-on-surface transition-colors group-hover:text-primary"
+                >
+                  {{ related.title }}
+                </h4>
+                <div class="mt-space-xs flex items-center justify-between">
+                  <span class="text-label-lg font-bold text-primary"
+                    >{{ related.price | number }} EGP</span
+                  >
+                  <span
+                    class="rounded-lg bg-surface-container-low p-2 text-on-surface transition-colors group-hover:bg-primary group-hover:text-on-primary"
+                  >
+                    <span class="material-symbols-outlined text-[18px]">add_shopping_cart</span>
+                  </span>
+                </div>
+              </div>
+            </a>
+          }
+        </div>
+      </div>
+    }
+  }
 </section>
