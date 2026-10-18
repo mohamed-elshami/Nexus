@@ -1,0 +1,434 @@
+<section class="container-nexus py-space-md">
+  <div class="mb-space-lg">
+    <app-breadcrumbs [items]="breadcrumbItems" />
+  </div>
+
+  <div
+    class="relative mb-space-xl overflow-hidden rounded-2xl bg-surface-container-low p-space-lg shadow-sm md:p-space-xl"
+  >
+    <div
+      class="pointer-events-none absolute -top-20 -right-20 h-96 w-96 rounded-full bg-primary-fixed/50 blur-3xl"
+    ></div>
+    <div
+      class="pointer-events-none absolute right-32 bottom-0 h-64 w-64 rounded-full bg-secondary-fixed/30 blur-2xl"
+    ></div>
+
+    <div class="relative z-10 flex max-w-3xl flex-col gap-space-sm">
+      <div
+        class="inline-flex w-fit items-center gap-space-xs rounded-full bg-surface-container px-3 py-1 text-label-sm font-semibold tracking-wide text-primary uppercase"
+      >
+        <span
+          class="material-symbols-outlined text-[15px]"
+          style="font-variation-settings: 'FILL' 1"
+          >verified</span
+        >
+        Verified Direct Flagships & Resellers
+      </div>
+      <h1 class="font-display text-headline-lg font-bold tracking-tight text-on-surface">
+        Official Brand Stores & Flagship Partners
+      </h1>
+      <p class="text-body-lg leading-relaxed text-on-surface-variant">
+        Shop 100% genuine products directly from verified international and regional flagships with
+        manufacturer warranty, sealed packaging, and direct doorstep support.
+      </p>
+
+      <div class="mt-space-xs grid grid-cols-2 gap-space-md pt-space-md sm:grid-cols-4">
+        <div class="flex flex-col rounded-xl bg-surface-container-lowest p-space-md shadow-sm">
+          <span class="text-headline-md font-bold text-primary">{{ brands().length }}</span>
+          <span class="text-label-sm text-on-surface-variant">Direct Brand Flagships</span>
+        </div>
+        <div class="flex flex-col rounded-xl bg-surface-container-lowest p-space-md shadow-sm">
+          <span class="text-headline-md font-bold text-primary">100%</span>
+          <span class="text-label-sm text-on-surface-variant">OEM Serial Guarantee</span>
+        </div>
+        <div class="flex flex-col rounded-xl bg-surface-container-lowest p-space-md shadow-sm">
+          <span class="text-headline-md font-bold text-primary">24 Mos</span>
+          <span class="text-label-sm text-on-surface-variant">Avg Official Warranty</span>
+        </div>
+        <div class="flex flex-col rounded-xl bg-surface-container-lowest p-space-md shadow-sm">
+          <span class="text-headline-md font-bold text-secondary">2 hrs</span>
+          <span class="text-label-sm text-on-surface-variant">Express Dispatch</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="mb-space-xl flex flex-col gap-space-md rounded-2xl bg-surface-container-lowest p-space-md shadow-sm"
+  >
+    <div class="flex flex-col items-center justify-between gap-space-md md:flex-row">
+      <div class="relative w-full md:max-w-xl">
+        <span
+          class="material-symbols-outlined absolute top-1/2 left-space-md -translate-y-1/2 text-[20px] text-outline"
+          >search</span
+        >
+        <input
+          class="h-12 w-full rounded-xl bg-surface-container-low pr-space-lg pl-11 text-body-md text-on-surface shadow-inner placeholder:text-outline focus:bg-surface-container-lowest focus:outline-none"
+          placeholder="Search verified brands (e.g. Sony, Nike, Apple)..."
+          type="search"
+          [value]="search()"
+          (input)="onSearch($any($event.target).value)"
+        />
+        @if (search()) {
+          <button
+            type="button"
+            class="absolute top-1/2 right-space-md -translate-y-1/2 text-outline hover:text-on-surface"
+            aria-label="Clear search"
+            (click)="clearSearch()"
+          >
+            <span class="material-symbols-outlined text-[18px]">close</span>
+          </button>
+        }
+      </div>
+      <div class="flex w-full items-center justify-between gap-space-sm md:w-auto md:justify-end">
+        <span class="text-label-md text-on-surface-variant">
+          Showing
+          <span class="font-bold text-primary">{{ filteredCards().length }}</span>
+          Partner Brands
+        </span>
+        <div
+          class="flex items-center gap-1 rounded-lg bg-surface-container-low px-space-sm py-1.5 text-label-sm text-on-surface-variant"
+        >
+          <span
+            class="material-symbols-outlined text-[16px] text-primary"
+            style="font-variation-settings: 'FILL' 1"
+            >verified_user</span
+          >
+          <span>All Authorized</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-space-xs overflow-x-auto pb-1">
+      @for (industry of industries; track industry.id) {
+        @if (industryCount(industry.id)) {
+          <button
+            type="button"
+            class="shrink-0 rounded-lg px-space-md py-2 text-label-md transition-all"
+            [class.bg-primary]="industryFilter() === industry.id"
+            [class.text-on-primary]="industryFilter() === industry.id"
+            [class.font-semibold]="industryFilter() === industry.id"
+            [class.shadow-sm]="industryFilter() === industry.id"
+            [class.bg-surface-container-low]="industryFilter() !== industry.id"
+            [class.text-on-surface-variant]="industryFilter() !== industry.id"
+            [class.hover:bg-surface-container]="industryFilter() !== industry.id"
+            (click)="setIndustry(industry.id)"
+          >
+            {{ industry.label }} ({{ industryCount(industry.id) }})
+          </button>
+        }
+      }
+    </div>
+
+    <div
+      class="flex flex-wrap items-center justify-between gap-1 rounded-xl bg-surface-container-low p-space-sm text-center"
+    >
+      <button
+        type="button"
+        class="rounded px-2.5 py-1 text-label-sm font-semibold"
+        [class.bg-primary]="!letterFilter()"
+        [class.text-on-primary]="!letterFilter()"
+        [class.text-on-surface-variant]="letterFilter()"
+        [class.hover:bg-surface-container]="letterFilter()"
+        [class.hover:text-primary]="letterFilter()"
+        (click)="setLetter(null)"
+      >
+        ALL
+      </button>
+      @for (letter of alphabet; track letter) {
+        <button
+          type="button"
+          class="rounded px-2 py-1 text-label-sm font-medium"
+          [disabled]="!lettersWithBrands().has(letter)"
+          [class.bg-primary]="letterFilter() === letter"
+          [class.text-on-primary]="letterFilter() === letter"
+          [class.text-on-surface-variant]="letterFilter() !== letter"
+          [class.hover:bg-surface-container]="
+            letterFilter() !== letter && lettersWithBrands().has(letter)
+          "
+          [class.hover:text-primary]="letterFilter() !== letter && lettersWithBrands().has(letter)"
+          [class.opacity-30]="!lettersWithBrands().has(letter)"
+          (click)="setLetter(letter)"
+        >
+          {{ letter }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="mb-space-lg flex items-center justify-between">
+    <div class="flex flex-col">
+      <div
+        class="flex items-center gap-space-xs text-label-sm font-bold tracking-wider text-primary uppercase"
+      >
+        <span class="material-symbols-outlined text-[16px]">stars</span>
+        <span>Premier Tier</span>
+      </div>
+      <h2 class="font-display text-headline-md font-bold text-on-surface">
+        Featured Flagship Brand Stores
+      </h2>
+    </div>
+    <a
+      class="flex items-center gap-1 text-label-md font-semibold text-primary hover:underline"
+      routerLink="/brands"
+      fragment="fullDirectory"
+      (click)="jumpTo('fullDirectory')"
+    >
+      <span>Browse All Letters</span>
+      <span class="material-symbols-outlined text-[16px]">arrow_downward</span>
+    </a>
+  </div>
+
+  @if (loading() && !brands().length) {
+    <div class="mb-space-xl grid grid-cols-1 gap-space-lg md:grid-cols-2 lg:grid-cols-3">
+      @for (slot of [1, 2, 3, 4, 5, 6]; track slot) {
+        <div class="h-72 animate-pulse rounded-2xl bg-surface-container"></div>
+      }
+    </div>
+  } @else if (error() && !brands().length) {
+    <div
+      class="mb-space-xl rounded-xl bg-error-container px-space-md py-space-sm text-body-sm text-on-error-container"
+      role="alert"
+    >
+      {{ error() }}
+    </div>
+  } @else {
+    <div class="mb-space-xl grid grid-cols-1 gap-space-lg md:grid-cols-2 lg:grid-cols-3">
+      @for (item of featuredBrands(); track item.brand._id) {
+        <article
+          class="group flex flex-col overflow-hidden rounded-2xl bg-surface-container-lowest shadow-sm transition-all duration-300 hover:shadow-md"
+        >
+          <div class="relative h-44 overflow-hidden bg-surface-container-high">
+            <img
+              [src]="item.brand.image"
+              [alt]="item.brand.name"
+              class="h-full w-full object-contain p-space-lg mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
+            />
+            <div
+              class="absolute inset-0 bg-gradient-to-t from-on-surface/90 via-on-surface/40 to-transparent"
+            ></div>
+            <span
+              class="absolute top-space-md left-space-md flex items-center gap-1 rounded-full bg-surface-container-lowest/90 px-2.5 py-1 text-label-sm font-bold text-primary backdrop-blur-md"
+            >
+              <span
+                class="material-symbols-outlined text-[14px]"
+                style="font-variation-settings: 'FILL' 1"
+                >verified</span
+              >
+              Official Flagship
+            </span>
+            <div
+              class="absolute right-space-md bottom-space-md left-space-md flex items-end justify-between"
+            >
+              <div>
+                <span class="block text-label-sm text-inverse-on-surface/80">{{
+                  item.industry.label
+                }}</span>
+                <h3 class="text-headline-sm font-bold text-on-primary">
+                  {{ item.brand.name }} Official Store
+                </h3>
+              </div>
+              <div
+                class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-surface-container-lowest text-headline-sm font-bold text-primary shadow-lg"
+              >
+                <img
+                  [src]="item.brand.image"
+                  [alt]="item.brand.name"
+                  class="h-8 w-8 object-contain mix-blend-multiply"
+                />
+              </div>
+            </div>
+          </div>
+          <div class="flex flex-1 flex-col justify-between p-space-md">
+            <p class="mb-space-md text-body-sm text-on-surface-variant">
+              Shop the official {{ item.brand.name }} catalog with manufacturer-backed authenticity.
+            </p>
+            <div class="flex items-center justify-between pt-space-xs">
+              <span class="flex items-center gap-1 text-label-sm font-medium text-secondary">
+                <span class="material-symbols-outlined text-[16px]">verified</span>
+                Direct brand storefront
+              </span>
+              <a
+                class="flex h-9 items-center gap-1 rounded-lg bg-primary px-space-md text-label-md text-on-primary transition-colors hover:bg-on-primary-fixed-variant"
+                routerLink="/products"
+                [queryParams]="brandQuery(item.brand._id)"
+              >
+                <span>Visit Flagship</span>
+                <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+              </a>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  }
+
+  <div
+    class="relative mb-space-xl overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-primary-container p-space-lg text-on-primary shadow-lg md:p-space-xl"
+  >
+    <div class="absolute -right-10 -bottom-10 opacity-10">
+      <span class="material-symbols-outlined text-[240px]">verified_user</span>
+    </div>
+    <div
+      class="relative z-10 flex max-w-4xl flex-col items-center justify-between gap-space-lg md:flex-row"
+    >
+      <div class="flex items-start gap-space-md">
+        <div
+          class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-surface-container-lowest/15 backdrop-blur-md"
+        >
+          <span
+            class="material-symbols-outlined text-[32px] text-on-primary"
+            style="font-variation-settings: 'FILL' 1"
+            >verified_user</span
+          >
+        </div>
+        <div class="flex flex-col gap-1">
+          <span class="text-label-sm font-bold tracking-wider text-secondary-fixed uppercase"
+            >Nexus Shield Promise</span
+          >
+          <h3 class="text-headline-md font-bold leading-tight">
+            Authorized Brand Distributor Guarantee
+          </h3>
+          <p class="text-body-md text-on-primary-container">
+            Every unit purchased from our certified flagship stores carries authentic serial
+            numbers, valid regional manufacturer warranties, and our 14-day hassle-free return
+            protection.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-space-xl flex scroll-mt-28 flex-col gap-space-lg" id="fullDirectory">
+    <div class="flex items-center justify-between">
+      <div>
+        <span class="text-label-sm font-bold tracking-wide text-primary uppercase"
+          >Complete Directory</span
+        >
+        <h2 class="font-display text-headline-md font-bold text-on-surface">
+          Alphabetical Brand Catalog
+        </h2>
+      </div>
+      <span
+        class="rounded-full bg-surface-container-low px-3 py-1 text-label-md text-on-surface-variant"
+      >
+        Organized A to Z
+      </span>
+    </div>
+
+    @if (!letterGroups().length) {
+      <div
+        class="flex flex-col items-center justify-center rounded-2xl bg-surface-container-lowest p-space-xl py-16 text-center shadow-sm"
+      >
+        <div
+          class="mb-space-md flex h-16 w-16 items-center justify-center rounded-full bg-surface-container-low text-outline"
+        >
+          <span class="material-symbols-outlined text-[36px]">search_off</span>
+        </div>
+        <h3 class="mb-1 text-headline-sm font-bold text-on-surface">
+          No verified brand matched your search
+        </h3>
+        <p class="mb-space-md max-w-md text-body-md text-on-surface-variant">
+          Try checking for spelling errors or clearing your letter and industry filters.
+        </p>
+        <button
+          type="button"
+          class="h-10 rounded-xl bg-primary px-space-lg text-label-md font-semibold text-on-primary transition-colors hover:bg-on-primary-fixed-variant"
+          (click)="clearSearch()"
+        >
+          Reset Filter & Show All
+        </button>
+      </div>
+    } @else {
+      <div class="flex flex-col gap-space-xl">
+        @for (group of letterGroups(); track group.letter) {
+          <div
+            class="scroll-mt-40 rounded-2xl bg-surface-container-lowest p-space-lg shadow-sm"
+            [id]="'letter-' + group.letter"
+          >
+            <div class="mb-space-md flex items-center gap-space-md">
+              <span
+                class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-headline-md font-bold text-on-primary shadow-sm"
+                >{{ group.letter }}</span
+              >
+              <div class="h-px flex-1 bg-surface-container"></div>
+              <span class="text-label-sm font-medium text-on-surface-variant">
+                {{ group.items.length }}
+                {{ group.items.length === 1 ? 'Verified Partner' : 'Verified Partners' }}
+              </span>
+            </div>
+            <div class="grid grid-cols-1 gap-space-md sm:grid-cols-2 lg:grid-cols-4">
+              @for (item of group.items; track item.brand._id) {
+                <a
+                  class="group flex flex-col justify-between rounded-xl bg-surface-container-low p-space-md transition-all hover:bg-surface-container"
+                  routerLink="/products"
+                  [queryParams]="brandQuery(item.brand._id)"
+                >
+                  <div class="flex items-start justify-between gap-space-sm">
+                    <div class="min-w-0">
+                      <h4
+                        class="flex items-center gap-1 text-headline-sm font-semibold text-on-surface transition-colors group-hover:text-primary"
+                      >
+                        {{ item.brand.name }}
+                        <span
+                          class="material-symbols-outlined text-[16px] text-primary"
+                          style="font-variation-settings: 'FILL' 1"
+                          >verified</span
+                        >
+                      </h4>
+                      <span class="text-label-sm text-on-surface-variant">Official Flagship</span>
+                    </div>
+                    <span
+                      class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-surface-container-lowest"
+                    >
+                      <img
+                        [src]="item.brand.image"
+                        [alt]="item.brand.name"
+                        class="h-8 w-8 object-contain mix-blend-multiply"
+                      />
+                    </span>
+                  </div>
+                  <div
+                    class="mt-space-md flex items-center justify-between pt-space-xs text-body-sm text-on-surface-variant"
+                  >
+                    <span>{{ item.industry.label }}</span>
+                    <span
+                      class="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-1"
+                      >arrow_forward</span
+                    >
+                  </div>
+                </a>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <div
+    class="mb-space-xl flex flex-col items-center justify-between gap-space-md rounded-2xl bg-surface-container-low p-space-lg md:flex-row"
+  >
+    <div class="flex items-center gap-space-md">
+      <div
+        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-surface-container text-primary"
+      >
+        <span class="material-symbols-outlined text-[28px]">storefront</span>
+      </div>
+      <div>
+        <h4 class="text-label-lg font-bold text-on-surface">
+          Are you a direct brand maker or authorized distributor?
+        </h4>
+        <p class="text-body-sm text-on-surface-variant">
+          Join the Nexus Verified Partner Network to access verified badge status, direct catalog
+          sync, and nationwide logistics.
+        </p>
+      </div>
+    </div>
+    <span
+      class="flex h-10 shrink-0 items-center justify-center rounded-xl bg-surface-container-lowest px-space-lg text-label-md font-semibold whitespace-nowrap text-on-surface"
+    >
+      Apply for Brand Flagship
+    </span>
+  </div>
+</section>
