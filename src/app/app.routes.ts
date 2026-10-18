@@ -8,6 +8,11 @@ export const routes: Routes = [
     component: WebsiteLayout,
     children: [
       {
+        path: 'categories',
+        loadComponent: () =>
+          import('./features/categories/pages/categories/categories').then((m) => m.Categories),
+      },
+      {
         path: 'products',
         loadComponent: () =>
           import('./features/products/pages/products/products').then((m) => m.Products),

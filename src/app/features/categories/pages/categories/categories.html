@@ -1,0 +1,455 @@
+<section>
+  <div class="w-full bg-surface-container-low/60 backdrop-blur-md">
+    <div
+      class="container-nexus flex flex-wrap items-center justify-between gap-space-sm py-space-sm"
+    >
+      <app-breadcrumbs [items]="breadcrumbItems" />
+      <div class="flex items-center gap-space-sm text-label-sm text-on-surface-variant">
+        <span class="h-2 w-2 animate-pulse rounded-full bg-secondary-container"></span>
+        <span>
+          Catalog Live Sync:
+          <strong class="text-on-surface">
+            {{ categories().length }} departments in stock
+          </strong>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <section class="relative w-full overflow-hidden bg-surface-container-lowest">
+    <div
+      class="pointer-events-none absolute -top-24 right-10 h-96 w-96 rounded-full bg-primary/5 blur-3xl"
+    ></div>
+    <div
+      class="pointer-events-none absolute bottom-0 left-1/4 h-80 w-80 rounded-full bg-secondary-container/10 blur-2xl"
+    ></div>
+
+    <div class="container-nexus relative z-10 flex flex-col gap-space-lg py-space-xl">
+      <div class="flex flex-col justify-between gap-space-md lg:flex-row lg:items-end">
+        <div class="flex max-w-2xl flex-col gap-space-xs">
+          <div
+            class="inline-flex w-fit items-center gap-2 rounded-full bg-surface-container px-3 py-1 text-label-sm text-primary shadow-sm"
+          >
+            <span
+              class="material-symbols-outlined text-[15px]"
+              style="font-variation-settings: 'FILL' 1"
+              >dataset</span
+            >
+            <span>Taxonomy & Storefront Index</span>
+            <span class="opacity-40">•</span>
+            <span class="font-medium text-on-surface">
+              {{ categories().length }} Main Departments • {{ subcategoryCount() }} Subcategories
+            </span>
+          </div>
+          <h1 class="mt-space-xs font-display text-headline-lg tracking-tight text-on-surface">
+            Explore All Categories & Departments
+          </h1>
+          <p class="max-w-xl text-body-md text-on-surface-variant">
+            Navigate through our collection of electronics, fashion, home living, and daily
+            lifestyle essentials from official brand distributors.
+          </p>
+        </div>
+
+        <div class="flex w-full flex-col gap-space-xs lg:w-96">
+          <div
+            class="relative flex items-center rounded-xl bg-surface-container-low px-space-md py-space-sm shadow-sm transition-all focus-within:ring-2 focus-within:ring-primary/20"
+          >
+            <span class="material-symbols-outlined mr-2 text-[22px] text-outline"
+              >manage_search</span
+            >
+            <input
+              class="w-full bg-transparent text-body-sm text-on-surface placeholder:text-outline focus:outline-none"
+              placeholder="Quick find department or category..."
+              type="search"
+              [value]="search()"
+              (input)="onSearch($any($event.target).value)"
+            />
+            @if (search()) {
+              <button
+                type="button"
+                class="ml-1 p-0.5 text-outline hover:text-on-surface"
+                aria-label="Clear search"
+                (click)="clearSearch()"
+              >
+                <span class="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            }
+          </div>
+          <div class="flex items-center justify-between px-1 text-label-sm text-outline">
+            <span>
+              Jump with
+              <kbd
+                class="rounded bg-surface-container px-1 py-0.5 font-mono text-[10px] text-on-surface-variant"
+                >⌘</kbd
+              >
+              +
+              <kbd
+                class="rounded bg-surface-container px-1 py-0.5 font-mono text-[10px] text-on-surface-variant"
+                >F</kbd
+              >
+            </span>
+            <span class="font-medium text-secondary">
+              {{ searchedDepartments().length }} of {{ departments().length }} Showing
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-space-xs pt-space-xs">
+        <span class="text-label-sm tracking-wider text-outline uppercase">Direct Jump Anchors</span>
+        <div class="scrollbar-hide flex items-center gap-space-xs overflow-x-auto pb-1">
+          @for (item of departments(); track item.category._id) {
+            <a
+              class="flex items-center gap-1.5 rounded-full bg-surface-container px-space-md py-1.5 text-label-md whitespace-nowrap text-on-surface shadow-sm transition-all hover:bg-primary hover:text-on-primary"
+              routerLink="/categories"
+              [fragment]="'category-' + item.category._id"
+              (click)="jumpTo(item.category._id)"
+            >
+              <span class="material-symbols-outlined text-[16px]">{{ item.icon }}</span>
+              <span>{{ item.category.name }}</span>
+            </a>
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="container-nexus py-space-xl">
+    <div class="mb-space-lg flex items-center justify-between">
+      <div class="flex flex-col gap-0.5">
+        <span class="text-label-sm font-semibold tracking-widest text-primary uppercase"
+          >Flagship Collections</span
+        >
+        <h2 class="font-display text-headline-lg font-bold text-on-surface">
+          Trending Departments
+        </h2>
+      </div>
+      <div class="hidden items-center gap-2 sm:flex">
+        <span class="text-label-sm text-on-surface-variant">Sorted by storefront index</span>
+        <span class="material-symbols-outlined text-[18px] text-primary">trending_up</span>
+      </div>
+    </div>
+
+    @if (loading() && !departments().length) {
+      <div class="grid grid-cols-1 gap-space-lg md:grid-cols-2 lg:grid-cols-3">
+        @for (slot of [1, 2, 3, 4, 5, 6]; track slot) {
+          <div class="h-80 animate-pulse rounded-2xl bg-surface-container"></div>
+        }
+      </div>
+    } @else if (error() && !departments().length) {
+      <div
+        class="rounded-xl bg-error-container px-space-md py-space-sm text-body-sm text-on-error-container"
+        role="alert"
+      >
+        {{ error() }}
+      </div>
+    } @else if (!trendingDepartments().length) {
+      <p class="rounded-xl bg-surface-container-low px-space-md py-space-lg text-body-sm text-on-surface-variant">
+        No departments match that search.
+      </p>
+    } @else {
+      <div class="grid grid-cols-1 gap-space-lg md:grid-cols-2 lg:grid-cols-3">
+        @for (item of trendingDepartments(); track item.category._id) {
+          <article
+            class="group flex scroll-mt-40 flex-col overflow-hidden rounded-2xl bg-surface-container-lowest shadow-sm transition-all duration-300 hover:shadow-xl"
+            [id]="'category-' + item.category._id"
+          >
+            <div class="relative h-52 w-full overflow-hidden bg-surface-container-low">
+              <img
+                [src]="item.category.image"
+                [alt]="item.category.name"
+                class="h-full w-full object-cover mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
+              />
+              <div
+                class="absolute inset-0 bg-gradient-to-t from-on-surface/80 via-on-surface/20 to-transparent"
+              ></div>
+              <div
+                class="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-surface-container-lowest/90 px-2.5 py-1 shadow-sm backdrop-blur-md"
+              >
+                <span class="material-symbols-outlined text-[16px] text-primary">{{
+                  item.icon
+                }}</span>
+                <span class="text-label-sm font-semibold text-on-surface">
+                  {{ item.subcategories.length }} subcategories
+                </span>
+              </div>
+              <div
+                class="absolute top-3 right-3 flex items-center gap-1 rounded-full px-2.5 py-1 text-label-sm font-semibold shadow-sm"
+                [class]="item.badge.tone"
+              >
+                <span class="material-symbols-outlined text-[13px]">{{ item.badge.icon }}</span>
+                <span>{{ item.badge.label }}</span>
+              </div>
+              <div class="absolute right-4 bottom-3 left-4">
+                <h3 class="text-headline-sm font-bold text-on-primary drop-shadow-sm">
+                  {{ item.category.name }}
+                </h3>
+                <p class="text-label-sm text-surface-container-highest/90">
+                  Shop the full {{ item.category.name }} collection
+                </p>
+              </div>
+            </div>
+
+            <div class="flex flex-1 flex-col justify-between gap-space-md p-space-md">
+              <div class="flex flex-wrap gap-1.5">
+                @for (sub of item.subcategories.slice(0, 5); track sub._id) {
+                  <a
+                    class="rounded-lg bg-surface-container-low px-2.5 py-1 text-label-sm text-on-surface-variant transition-colors hover:bg-surface-container hover:text-primary"
+                    [routerLink]="categoryLink(item.category._id)"
+                    [queryParams]="subcategoryQuery(item.category._id, sub._id)"
+                  >
+                    {{ sub.name }}
+                  </a>
+                } @empty {
+                  <span class="text-label-sm text-on-surface-variant">No subcategories yet</span>
+                }
+              </div>
+              <div class="flex items-center justify-between pt-space-xs">
+                <div class="flex items-center gap-2">
+                  <span class="text-label-md font-semibold text-on-surface">{{
+                    item.footnote.label
+                  }}</span>
+                  <span
+                    class="rounded bg-surface-container px-2 py-0.5 text-label-sm font-medium text-secondary"
+                    >{{ item.footnote.value }}</span
+                  >
+                </div>
+                <a
+                  class="flex items-center gap-1 text-label-md font-semibold text-primary transition-transform group-hover:translate-x-1 hover:text-on-primary-fixed-variant"
+                  [routerLink]="categoryLink(item.category._id)"
+                  [queryParams]="categoryQuery(item.category._id)"
+                >
+                  <span>View All</span>
+                  <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </a>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+
+  <section class="container-nexus py-space-md">
+    <div
+      class="relative flex flex-col items-center justify-between gap-space-lg overflow-hidden rounded-2xl bg-gradient-to-r from-primary via-primary-container to-secondary p-space-lg text-on-primary shadow-xl md:flex-row"
+    >
+      <div
+        class="pointer-events-none absolute -right-10 -bottom-10 h-72 w-72 rounded-full bg-surface-container-lowest/10 blur-2xl"
+      ></div>
+      <div class="z-10 flex items-center gap-space-md">
+        <div
+          class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-surface-container-lowest/15 shadow-inner backdrop-blur-md"
+        >
+          <span class="material-symbols-outlined text-[32px] text-on-primary">verified_user</span>
+        </div>
+        <div class="flex flex-col gap-1">
+          <div class="flex flex-wrap items-center gap-2">
+            <span
+              class="rounded bg-surface-container-lowest px-2 py-0.5 text-label-sm font-bold tracking-wider text-primary uppercase"
+              >Authorized Outlets</span
+            >
+            <span class="text-label-sm opacity-80">Direct Manufacturer Warranty</span>
+          </div>
+          <h2 class="font-display text-headline-md font-bold tracking-tight">
+            Looking for verified brand outlets?
+          </h2>
+          <p class="max-w-xl text-body-sm text-on-primary-container">
+            Explore dedicated flagship digital storefronts from Apple, Sony, Dyson,
+            Samsung, Bose, and 120+ certified global luxury retailers.
+          </p>
+        </div>
+      </div>
+      <div class="z-10 flex w-full shrink-0 items-center justify-end gap-space-sm md:w-auto">
+        <a
+          class="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-surface-container-lowest px-space-lg text-label-md font-bold text-primary shadow-md transition-all hover:bg-surface-container-low hover:shadow-lg md:w-auto"
+          routerLink="/brands"
+        >
+          <span>Explore Brands Showcase</span>
+          <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="container-nexus py-space-xl">
+    <div
+      class="mb-space-lg flex flex-col justify-between gap-space-sm md:flex-row md:items-end"
+    >
+      <div class="flex flex-col gap-1">
+        <div class="flex items-center gap-2">
+          <span
+            class="rounded bg-primary/10 px-2.5 py-0.5 text-label-sm font-bold text-primary uppercase"
+            >Index Matrix</span
+          >
+          <span class="text-label-sm text-outline">Complete Hierarchical Map</span>
+        </div>
+        <h2 class="font-display text-headline-lg font-bold text-on-surface">
+          All Departments & Subcategories
+        </h2>
+      </div>
+      <div class="flex items-center gap-1 overflow-x-auto py-1 text-label-sm text-on-surface-variant">
+        <span class="mr-2 font-mono text-outline">Index:</span>
+        <button
+          type="button"
+          class="flex h-7 min-w-7 items-center justify-center rounded-lg px-1.5 transition-colors"
+          [class.bg-primary]="!letterFilter()"
+          [class.text-on-primary]="!letterFilter()"
+          [class.font-semibold]="!letterFilter()"
+          [class.hover:bg-surface-container]="letterFilter()"
+          (click)="setLetter(null)"
+        >
+          ALL
+        </button>
+        @for (letter of letters(); track letter) {
+          <button
+            type="button"
+            class="flex h-7 w-7 items-center justify-center rounded-lg transition-colors"
+            [class.bg-primary]="letterFilter() === letter"
+            [class.text-on-primary]="letterFilter() === letter"
+            [class.font-semibold]="letterFilter() === letter"
+            [class.hover:bg-surface-container]="letterFilter() !== letter"
+            (click)="setLetter(letter)"
+          >
+            {{ letter }}
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (!directoryDepartments().length) {
+      <p class="rounded-xl bg-surface-container-low px-space-md py-space-lg text-body-sm text-on-surface-variant">
+        No departments in this index.
+      </p>
+    } @else {
+      <div class="grid grid-cols-1 gap-space-lg md:grid-cols-2 lg:grid-cols-4">
+        @for (item of directoryDepartments(); track item.category._id) {
+          <div
+            class="flex flex-col rounded-2xl bg-surface-container-lowest p-space-md shadow-sm"
+          >
+            <div
+              class="mb-space-sm flex items-center justify-between rounded-xl bg-surface-container-low px-space-sm py-2"
+            >
+              <div class="flex min-w-0 items-center gap-2">
+                <span class="material-symbols-outlined text-[20px] text-primary">{{
+                  item.icon
+                }}</span>
+                <h3 class="truncate text-headline-sm font-bold text-on-surface">
+                  {{ item.category.name }}
+                </h3>
+              </div>
+              <span
+                class="rounded bg-surface-container-lowest px-2 py-0.5 text-label-sm font-semibold text-on-surface shadow-xs"
+              >
+                {{ item.subcategories.length }} Cat
+              </span>
+            </div>
+            <ul class="flex flex-col gap-2 text-body-sm text-on-surface-variant">
+              @for (sub of item.subcategories.slice(0, 7); track sub._id) {
+                <li class="group flex items-center justify-between">
+                  <a
+                    class="flex items-center gap-1.5 transition-colors hover:text-primary"
+                    [routerLink]="categoryLink(item.category._id)"
+                    [queryParams]="subcategoryQuery(item.category._id, sub._id)"
+                  >
+                    <span
+                      class="material-symbols-outlined text-[14px] text-outline group-hover:text-primary"
+                      >arrow_right</span
+                    >
+                    <span>{{ sub.name }}</span>
+                  </a>
+                </li>
+              } @empty {
+                <li class="text-outline">No subcategories listed</li>
+              }
+            </ul>
+            <a
+              class="mt-space-md flex items-center gap-1 pt-space-xs text-label-sm font-semibold text-primary hover:underline"
+              [routerLink]="categoryLink(item.category._id)"
+              [queryParams]="categoryQuery(item.category._id)"
+            >
+              <span>
+                @if (item.subcategories.length) {
+                  Explore all {{ item.subcategories.length }}
+                  {{ item.subcategories.length === 1 ? 'subcategory' : 'subcategories' }}
+                } @else {
+                  Explore this department
+                }
+              </span>
+              <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+            </a>
+          </div>
+        }
+      </div>
+    }
+  </section>
+
+  <section class="mt-space-lg w-full bg-surface-container-low/70 py-space-xl">
+    <div class="container-nexus grid grid-cols-1 gap-space-lg md:grid-cols-3">
+      <div
+        class="flex items-start gap-space-md rounded-2xl bg-surface-container-lowest p-space-md shadow-sm"
+      >
+        <div
+          class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary-fixed text-primary"
+        >
+          <span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1"
+            >verified</span
+          >
+        </div>
+        <div class="flex flex-col gap-1">
+          <h4 class="text-headline-sm font-bold text-on-surface">100% Authenticity Shield</h4>
+          <p class="text-body-sm text-on-surface-variant">
+            Every item across our main departments is sourced straight from official brand
+            distributors with serialized proof.
+          </p>
+          <span class="mt-1 text-label-sm font-semibold text-primary"
+            >Direct Brand Serial Verification</span
+          >
+        </div>
+      </div>
+      <div
+        class="flex items-start gap-space-md rounded-2xl bg-surface-container-lowest p-space-md shadow-sm"
+      >
+        <div
+          class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-secondary-fixed text-secondary"
+        >
+          <span
+            class="material-symbols-outlined text-[28px]"
+            style="font-variation-settings: 'FILL' 1"
+            >electric_bolt</span
+          >
+        </div>
+        <div class="flex flex-col gap-1">
+          <h4 class="text-headline-sm font-bold text-on-surface">Same-Day Cairo & Giza</h4>
+          <p class="text-body-sm text-on-surface-variant">
+            Orders placed before 2:00 PM are delivered directly to your doorstep in Greater Cairo on
+            the same calendar day.
+          </p>
+          <span class="mt-1 text-label-sm font-semibold text-secondary">Live Courier Telemetry</span>
+        </div>
+      </div>
+      <div
+        class="flex items-start gap-space-md rounded-2xl bg-surface-container-lowest p-space-md shadow-sm"
+      >
+        <div
+          class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-tertiary-fixed text-tertiary"
+        >
+          <span
+            class="material-symbols-outlined text-[28px]"
+            style="font-variation-settings: 'FILL' 1"
+            >published_with_changes</span
+          >
+        </div>
+        <div class="flex flex-col gap-1">
+          <h4 class="text-headline-sm font-bold text-on-surface">14-Day Doorstep Return</h4>
+          <p class="text-body-sm text-on-surface-variant">
+            Request returns or size swaps with one tap; our fleet collects right from your door.
+          </p>
+          <span class="mt-1 text-label-sm font-semibold text-tertiary"
+            >Instant Wallet or Card Refund</span
+          >
+        </div>
+      </div>
+    </div>
+  </section>
+</section>
