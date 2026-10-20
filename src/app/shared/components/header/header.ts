@@ -12,6 +12,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter } from 'rxjs';
+import { AuthService } from '../../../features/auth/services/auth.service';
 import { CategoryService } from '../../../features/categories/services/category.service';
 
 @Component({
@@ -21,14 +22,23 @@ import { CategoryService } from '../../../features/categories/services/category.
 })
 export class Header implements OnInit {
   private readonly categoryService = inject(CategoryService);
+  private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly categories = this.categoryService.categories;
+  readonly user = this.authService.user;
+  readonly isAuthenticated = this.authService.isAuthenticated;
   readonly menuOpen = signal(false);
   readonly categoryMenuOpen = signal(false);
+  readonly userMenuOpen = signal(false);
   readonly selectedCategoryId = signal<string | null>(null);
+
+  readonly userInitial = computed(() => {
+    const name = this.user()?.name?.trim();
+    return name ? name.charAt(0).toUpperCase() : '?';
+  });
 
   readonly selectedCategoryLabel = computed(() => {
     const id = this.selectedCategoryId();
@@ -38,12 +48,19 @@ export class Header implements OnInit {
     return this.categories().find((category) => category._id === id)?.name ?? 'All Categories';
   });
 
-  readonly navLinks = [
-    { label: 'Categories', path: '/categories', icon: 'grid_view' },
-    { label: 'Products', path: '/products', icon: 'inventory_2' },
-    { label: 'Brands', path: '/brands', icon: 'storefront' },
-    { label: 'Orders', path: '/orders', icon: 'package_2' },
-  ];
+  readonly navLinks = computed(() => {
+    const links = [
+      { label: 'Categories', path: '/categories', icon: 'grid_view' },
+      { label: 'Products', path: '/products', icon: 'inventory_2' },
+      { label: 'Brands', path: '/brands', icon: 'storefront' },
+    ];
+
+    if (this.isAuthenticated()) {
+      links.push({ label: 'Orders', path: '/orders', icon: 'package_2' });
+    }
+
+    return links;
+  });
 
   constructor() {
     effect(() => {
@@ -64,7 +81,10 @@ export class Header implements OnInit {
         filter((event) => event instanceof NavigationEnd),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(() => this.syncSelectedCategoryFromUrl());
+      .subscribe(() => {
+        this.userMenuOpen.set(false);
+        this.syncSelectedCategoryFromUrl();
+      });
   }
 
   ngOnInit(): void {
@@ -75,6 +95,7 @@ export class Header implements OnInit {
   toggleMenu(): void {
     this.menuOpen.update((open) => !open);
     this.closeCategoryMenu();
+    this.closeUserMenu();
   }
 
   closeMenu(): void {
@@ -83,6 +104,23 @@ export class Header implements OnInit {
 
   toggleCategoryMenu(): void {
     this.categoryMenuOpen.update((open) => !open);
+    this.closeUserMenu();
+  }
+
+  toggleUserMenu(): void {
+    this.userMenuOpen.update((open) => !open);
+    this.closeCategoryMenu();
+  }
+
+  closeUserMenu(): void {
+    this.userMenuOpen.set(false);
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.closeMenu();
+    this.closeUserMenu();
+    void this.router.navigateByUrl('/login');
   }
 
   closeCategoryMenu(): void {
@@ -114,10 +152,18 @@ export class Header implements OnInit {
   }
 
   onCategoryFocusOut(event: FocusEvent): void {
+    this.closeMenuOnFocusOut(event, () => this.closeCategoryMenu());
+  }
+
+  onUserMenuFocusOut(event: FocusEvent): void {
+    this.closeMenuOnFocusOut(event, () => this.closeUserMenu());
+  }
+
+  private closeMenuOnFocusOut(event: FocusEvent, close: () => void): void {
     const container = event.currentTarget as HTMLElement;
     const next = event.relatedTarget as Node | null;
     if (!next || !container.contains(next)) {
-      this.closeCategoryMenu();
+      close();
     }
   }
 

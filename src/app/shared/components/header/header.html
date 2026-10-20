@@ -8,8 +8,10 @@
         >Summer Flash Deal: Up to 40% OFF with code NEXUS24 • Free express delivery over $99</span
       >
       <div class="hidden items-center gap-space-md sm:flex">
-        <a class="hover:underline" routerLink="/orders">Track Order</a>
-        <span class="opacity-50">|</span>
+        @if (isAuthenticated()) {
+          <a class="hover:underline" routerLink="/orders">Track Order</a>
+          <span class="opacity-50">|</span>
+        }
         <a class="hover:underline" href="#">Support 24/7</a>
       </div>
     </div>
@@ -115,7 +117,7 @@
 
     <!-- Nav -->
     <nav class="hidden shrink-0 items-center gap-space-xs lg:flex">
-      @for (link of navLinks; track link.path) {
+      @for (link of navLinks(); track link.path) {
         <a
           [routerLink]="link.path"
           routerLinkActive="bg-surface-container text-primary font-semibold"
@@ -127,92 +129,119 @@
 
     <!-- Actions -->
     <div class="flex shrink-0 items-center gap-space-md">
-      <a
-        routerLink="/wishlist"
-        aria-label="Wishlist"
-        class="relative rounded-full p-space-xs text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface"
-      >
-        <span class="material-symbols-outlined text-[22px]">favorite</span>
-        <span
-          class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-error text-[10px] font-bold text-on-error"
-          >0</span
+      @if (isAuthenticated()) {
+        <a
+          routerLink="/wishlist"
+          aria-label="Wishlist"
+          class="relative rounded-full p-space-xs text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface"
         >
-      </a>
-
-      <a
-        routerLink="/cart"
-        class="flex items-center gap-space-sm rounded-lg bg-surface-container-low px-space-sm py-space-xs transition-colors hover:bg-surface-container"
-      >
-        <div class="relative flex items-center justify-center">
+          <span class="material-symbols-outlined text-[22px]">favorite</span>
           <span
-            class="material-symbols-outlined flex items-center justify-center text-[22px] leading-none text-primary"
-            >shopping_bag</span
-          >
-          <span
-            class="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-on-primary"
+            class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-error text-[10px] font-bold text-on-error"
             >0</span
           >
-        </div>
-        <div class="hidden flex-col text-left sm:flex">
-          <span class="text-[11px] leading-none text-on-surface-variant">Cart Total</span>
-          <span class="text-label-md leading-tight font-semibold text-on-surface">$0.00</span>
-        </div>
-      </a>
+        </a>
 
-      <div class="group relative">
-        <button
-          type="button"
-          class="flex items-center gap-space-xs rounded-full p-0.5 transition-all hover:ring-2 hover:ring-primary/20 focus:outline-none"
+        <a
+          routerLink="/cart"
+          class="flex items-center gap-space-sm rounded-lg bg-surface-container-low px-space-sm py-space-xs transition-colors hover:bg-surface-container"
         >
-          <span
-            class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-container text-label-md font-semibold text-on-primary"
-            >N</span
-          >
-          <span
-            class="material-symbols-outlined hidden text-[18px] text-on-surface-variant sm:inline"
-            >expand_more</span
-          >
-        </button>
-        <div
-          class="absolute top-full right-0 mt-2 hidden w-56 rounded-xl bg-surface-container-lowest py-space-xs shadow-modal transition-all group-hover:block group-focus-within:block"
-        >
-          <div
-            class="mx-space-xs mb-space-xs rounded-lg bg-surface-container-low px-space-md py-space-sm"
-          >
-            <p class="text-label-md font-semibold text-on-surface">Guest</p>
-            <p class="text-body-sm text-on-surface-variant">Sign in to continue</p>
+          <div class="relative flex items-center justify-center">
+            <span
+              class="material-symbols-outlined flex items-center justify-center text-[22px] leading-none text-primary"
+              >shopping_bag</span
+            >
+            <span
+              class="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-on-primary"
+              >0</span
+            >
           </div>
-          <a
-            routerLink="/account/profile"
-            class="flex items-center gap-space-sm px-space-md py-space-xs text-label-md text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
+          <div class="hidden flex-col text-left sm:flex">
+            <span class="text-[11px] leading-none text-on-surface-variant">Cart Total</span>
+            <span class="text-label-md leading-tight font-semibold text-on-surface">$0.00</span>
+          </div>
+        </a>
+
+        <div class="relative" (focusout)="onUserMenuFocusOut($event)">
+          <button
+            type="button"
+            class="flex items-center gap-space-xs rounded-full p-0.5 transition-all hover:ring-2 hover:ring-primary/20 focus:outline-none"
+            [attr.aria-expanded]="userMenuOpen()"
+            aria-haspopup="menu"
+            aria-label="Account menu"
+            (click)="toggleUserMenu()"
           >
-            <span class="material-symbols-outlined text-[18px]">person</span>
-            Profile & Security
-          </a>
-          <a
-            routerLink="/account/addresses"
-            class="flex items-center gap-space-sm px-space-md py-space-xs text-label-md text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
-          >
-            <span class="material-symbols-outlined text-[18px]">home_pin</span>
-            My Addresses
-          </a>
-          <a
-            routerLink="/account/orders"
-            class="flex items-center gap-space-sm px-space-md py-space-xs text-label-md text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
-          >
-            <span class="material-symbols-outlined text-[18px]">package_2</span>
-            Orders History
-          </a>
-          <div class="my-space-xs h-px bg-surface-container"></div>
-          <a
-            routerLink="/login"
-            class="flex items-center gap-space-sm px-space-md py-space-xs text-label-md text-error transition-colors hover:bg-error-container hover:text-on-error-container"
-          >
-            <span class="material-symbols-outlined text-[18px]">login</span>
-            Sign in
-          </a>
+            <span
+              class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-container text-label-md font-semibold text-on-primary"
+              >{{ userInitial() }}</span
+            >
+            <span
+              class="material-symbols-outlined hidden text-[18px] text-on-surface-variant sm:inline"
+              [class.rotate-180]="userMenuOpen()"
+              >expand_more</span
+            >
+          </button>
+          @if (userMenuOpen()) {
+            <div
+              class="absolute top-full right-0 z-50 mt-2 w-64 rounded-xl bg-surface-container-lowest py-space-xs shadow-modal"
+              role="menu"
+            >
+              <div
+                class="mx-space-xs mb-space-xs rounded-lg bg-surface-container-low px-space-md py-space-sm"
+              >
+                <p class="truncate text-label-md font-semibold text-on-surface">
+                  {{ user()?.name }}
+                </p>
+                <p class="truncate text-body-sm text-on-surface-variant">{{ user()?.email }}</p>
+              </div>
+              <a
+                routerLink="/profile"
+                class="flex items-center gap-space-sm px-space-md py-space-xs text-label-md text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
+                role="menuitem"
+                (click)="closeUserMenu()"
+              >
+                <span class="material-symbols-outlined text-[18px]">person</span>
+                Profile
+              </a>
+              <a
+                routerLink="/address"
+                class="flex items-center gap-space-sm px-space-md py-space-xs text-label-md text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
+                role="menuitem"
+                (click)="closeUserMenu()"
+              >
+                <span class="material-symbols-outlined text-[18px]">home_pin</span>
+                Address
+              </a>
+              <a
+                routerLink="/orders"
+                class="flex items-center gap-space-sm px-space-md py-space-xs text-label-md text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
+                role="menuitem"
+                (click)="closeUserMenu()"
+              >
+                <span class="material-symbols-outlined text-[18px]">package_2</span>
+                Order history
+              </a>
+              <div class="my-space-xs h-px bg-surface-container"></div>
+              <button
+                type="button"
+                class="flex w-full items-center gap-space-sm px-space-md py-space-xs text-left text-label-md text-error transition-colors hover:bg-error-container hover:text-on-error-container"
+                role="menuitem"
+                (click)="logout()"
+              >
+                <span class="material-symbols-outlined text-[18px]">logout</span>
+                Logout
+              </button>
+            </div>
+          }
         </div>
-      </div>
+      } @else {
+        <a
+          routerLink="/login"
+          class="flex h-11 w-40 items-center justify-center rounded-lg bg-primary text-label-lg font-bold text-on-primary shadow-md shadow-primary/20 transition-colors hover:bg-primary-container sm:w-52"
+        >
+          Sign in
+        </a>
+      }
     </div>
   </div>
 
@@ -290,7 +319,7 @@
       </div>
 
       <nav class="flex flex-1 flex-col gap-space-xs overflow-y-auto p-space-md">
-        @for (link of navLinks; track link.path) {
+        @for (link of navLinks(); track link.path) {
           <a
             [routerLink]="link.path"
             routerLinkActive="bg-surface-container text-primary font-semibold"
@@ -304,14 +333,52 @@
       </nav>
 
       <div class="border-t border-outline-variant/20 p-space-md">
-        <a
-          routerLink="/login"
-          class="flex h-11 w-full items-center justify-center gap-space-xs rounded-lg bg-primary text-label-lg font-semibold text-on-primary transition-colors hover:bg-on-primary-fixed-variant"
-          (click)="closeMenu()"
-        >
-          <span class="material-symbols-outlined text-[20px]">login</span>
-          Sign in
-        </a>
+        @if (isAuthenticated()) {
+          <div class="mb-space-sm rounded-lg bg-surface-container-low px-space-md py-space-sm">
+            <p class="truncate text-label-md font-semibold text-on-surface">{{ user()?.name }}</p>
+            <p class="truncate text-body-sm text-on-surface-variant">{{ user()?.email }}</p>
+          </div>
+          <a
+            routerLink="/profile"
+            class="mb-space-xs flex items-center gap-space-sm rounded-lg px-space-md py-space-sm text-label-lg text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
+            (click)="closeMenu()"
+          >
+            <span class="material-symbols-outlined text-[20px]">person</span>
+            Profile
+          </a>
+          <a
+            routerLink="/address"
+            class="mb-space-xs flex items-center gap-space-sm rounded-lg px-space-md py-space-sm text-label-lg text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
+            (click)="closeMenu()"
+          >
+            <span class="material-symbols-outlined text-[20px]">home_pin</span>
+            Address
+          </a>
+          <a
+            routerLink="/orders"
+            class="mb-space-sm flex items-center gap-space-sm rounded-lg px-space-md py-space-sm text-label-lg text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
+            (click)="closeMenu()"
+          >
+            <span class="material-symbols-outlined text-[20px]">package_2</span>
+            Order history
+          </a>
+          <button
+            type="button"
+            class="flex h-11 w-full items-center justify-center gap-space-xs rounded-lg bg-error-container text-label-lg font-semibold text-on-error-container transition-colors hover:bg-error hover:text-on-error"
+            (click)="logout()"
+          >
+            <span class="material-symbols-outlined text-[20px]">logout</span>
+            Logout
+          </button>
+        } @else {
+          <a
+            routerLink="/login"
+            class="flex h-11 w-full items-center justify-center rounded-lg bg-primary text-label-lg font-bold text-on-primary shadow-md shadow-primary/20 transition-colors hover:bg-primary-container"
+            (click)="closeMenu()"
+          >
+            Sign in
+          </a>
+        }
       </div>
     </aside>
   }

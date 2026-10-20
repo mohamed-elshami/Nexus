@@ -16,8 +16,9 @@ import {
   VerifyResetCodePayload,
 } from '../models/auth.model';
 
-const TOKEN_KEY = 'token';
-const USER_KEY = 'user';
+const TOKEN_COOKIE = 'token';
+const USER_COOKIE = 'user';
+const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
 @Injectable({
   providedIn: 'root',
@@ -96,6 +97,17 @@ export class AuthService {
 
   logout(): void {
     this.clearSession();
+    this.clearStatus();
+  }
+
+  clearStatus(): void {
+    this.signUpRequestId++;
+    this.signInRequestId++;
+    this.forgotPasswordRequestId++;
+    this.verifyResetCodeRequestId++;
+    this.resetPasswordRequestId++;
+    this.changePasswordRequestId++;
+    this._loading.set(false);
     this._error.set(null);
     this._message.set(null);
   }
@@ -108,7 +120,9 @@ export class AuthService {
           this.startRequest();
 
           return this.http.post<AuthSessionResponse>(this.signupUrl, payload).pipe(
-            catchError((err) => this.handleError(err, requestId, this.signUpRequestId, 'Failed to create account')),
+            catchError((err) =>
+              this.handleError(err, requestId, this.signUpRequestId, 'Failed to create account'),
+            ),
             finalize(() => this.finishRequest(requestId, this.signUpRequestId)),
           );
         }),
@@ -130,7 +144,9 @@ export class AuthService {
           this.startRequest();
 
           return this.http.post<AuthSessionResponse>(this.signinUrl, payload).pipe(
-            catchError((err) => this.handleError(err, requestId, this.signInRequestId, 'Failed to sign in')),
+            catchError((err) =>
+              this.handleError(err, requestId, this.signInRequestId, 'Failed to sign in'),
+            ),
             finalize(() => this.finishRequest(requestId, this.signInRequestId)),
           );
         }),
@@ -153,7 +169,12 @@ export class AuthService {
 
           return this.http.post<AuthMessageResponse>(this.forgotPasswordUrl, payload).pipe(
             catchError((err) =>
-              this.handleError(err, requestId, this.forgotPasswordRequestId, 'Failed to send reset code'),
+              this.handleError(
+                err,
+                requestId,
+                this.forgotPasswordRequestId,
+                'Failed to send reset code',
+              ),
             ),
             finalize(() => this.finishRequest(requestId, this.forgotPasswordRequestId)),
           );
@@ -199,7 +220,12 @@ export class AuthService {
 
           return this.http.put<AuthSessionResponse>(this.resetPasswordUrl, payload).pipe(
             catchError((err) =>
-              this.handleError(err, requestId, this.resetPasswordRequestId, 'Failed to reset password'),
+              this.handleError(
+                err,
+                requestId,
+                this.resetPasswordRequestId,
+                'Failed to reset password',
+              ),
             ),
             finalize(() => this.finishRequest(requestId, this.resetPasswordRequestId)),
           );
@@ -210,12 +236,10 @@ export class AuthService {
           return;
         }
         if (response.token) {
-          this._token.set(response.token);
-          this.persistToken(response.token);
+          this.setToken(response.token);
         }
         if (response.user) {
-          this._user.set(response.user);
-          this.persistUser(response.user);
+          this.setUser(response.user);
         }
         this._message.set(response.message ?? 'Password reset successfully');
       });
@@ -250,12 +274,10 @@ export class AuthService {
           return;
         }
         if (response.token) {
-          this._token.set(response.token);
-          this.persistToken(response.token);
+          this.setToken(response.token);
         }
         if (response.user) {
-          this._user.set(response.user);
-          this.persistUser(response.user);
+          this.setUser(response.user);
         }
         this._message.set(response.message ?? 'Password updated successfully');
       });
@@ -301,19 +323,23 @@ export class AuthService {
   }
 
   private setSession(response: AuthSessionResponse): void {
-    this._token.set(response.token);
-    this._user.set(response.user);
-    this.persistToken(response.token);
-    this.persistUser(response.user);
+    this.setToken(response.token);
+    this.setUser(response.user);
+  }
+
+  private setToken(token: string): void {
+    this._token.set(token);
+    this.writeCookie(TOKEN_COOKIE, token);
+  }
+
+  private setUser(user: AuthUser): void {
+    this._user.set(user);
+    this.writeCookie(USER_COOKIE, JSON.stringify(user));
   }
 
   private restoreSession(): void {
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-
-    const token = localStorage.getItem(TOKEN_KEY);
-    const rawUser = localStorage.getItem(USER_KEY);
+    const token = this.readCookie(TOKEN_COOKIE);
+    const rawUser = this.readCookie(USER_COOKIE);
 
     if (token) {
       this._token.set(token);
@@ -326,31 +352,39 @@ export class AuthService {
     try {
       this._user.set(JSON.parse(rawUser) as AuthUser);
     } catch {
-      localStorage.removeItem(USER_KEY);
-    }
-  }
-
-  private persistToken(token: string): void {
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem(TOKEN_KEY, token);
-    }
-  }
-
-  private persistUser(user: AuthUser): void {
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem(USER_KEY, JSON.stringify(user));
+      this.deleteCookie(USER_COOKIE);
     }
   }
 
   private clearSession(): void {
     this._token.set(null);
     this._user.set(null);
+    this.deleteCookie(TOKEN_COOKIE);
+    this.deleteCookie(USER_COOKIE);
+  }
 
+  private readCookie(name: string): string | null {
+    if (!isPlatformBrowser(this.platformId)) {
+      return null;
+    }
+
+    const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+    return match ? decodeURIComponent(match[1]) : null;
+  }
+
+  private writeCookie(name: string, value: string): void {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
 
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${COOKIE_MAX_AGE_SECONDS}; SameSite=Lax`;
+  }
+
+  private deleteCookie(name: string): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
   }
 }
