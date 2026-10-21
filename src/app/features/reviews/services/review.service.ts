@@ -1,6 +1,6 @@
-import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
+import { AuthService } from '../../auth/services/auth.service';
 import {
   Subject,
   catchError,
@@ -26,7 +26,7 @@ import {
 })
 export class ReviewService {
   private readonly http = inject(HttpClient);
-  private readonly platformId = inject(PLATFORM_ID);
+  private readonly authService = inject(AuthService);
 
   private readonly reviewsBaseUrl = `${environment.apiUrl}${API_ENDPOINTS.reviews.list}`;
   private readonly reviewBaseUrl = (id: string) =>
@@ -337,11 +337,7 @@ export class ReviewService {
   }
 
   private authHeaders(): HttpHeaders {
-    if (!isPlatformBrowser(this.platformId)) {
-      return new HttpHeaders();
-    }
-
-    const token = localStorage.getItem('token') ?? '';
+    const token = this.authService.token() ?? '';
     return new HttpHeaders({ token });
   }
 

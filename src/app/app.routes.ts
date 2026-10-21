@@ -14,8 +14,7 @@ export const routes: Routes = [
       },
       {
         path: 'brands',
-        loadComponent: () =>
-          import('./features/brands/pages/brands/brands').then((m) => m.Brands),
+        loadComponent: () => import('./features/brands/pages/brands/brands').then((m) => m.Brands),
       },
       {
         path: 'products',
@@ -34,6 +33,16 @@ export const routes: Routes = [
   {
     path: '',
     component: AuthLayout,
-    children: [],
+    children: [
+      {
+        path: 'login',
+        loadComponent: () => import('./features/auth/pages/login/login').then((m) => m.Login),
+      },
+      {
+        path: 'register',
+        loadComponent: () =>
+          import('./features/auth/pages/register/register').then((m) => m.Register),
+      },
+    ],
   },
 ];
