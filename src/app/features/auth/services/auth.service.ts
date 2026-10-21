@@ -1,7 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
-import { Subject, catchError, finalize, of, switchMap } from 'rxjs';
+import { Subject, catchError, finalize, map, of, switchMap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
 import {
@@ -18,7 +18,8 @@ import {
 
 const TOKEN_COOKIE = 'token';
 const USER_COOKIE = 'user';
-const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
+const COOKIE_MAX_AGE_30_DAYS = 60 * 60 * 24 * 30;
+const COOKIE_MAX_AGE_1_DAY = 60 * 60 * 24;
 
 @Injectable({
   providedIn: 'root',
@@ -48,7 +49,7 @@ export class AuthService {
   readonly isAuthenticated = computed(() => Boolean(this._token()));
 
   private readonly signUpRequest$ = new Subject<SignUpPayload>();
-  private readonly signInRequest$ = new Subject<SignInPayload>();
+  private readonly signInRequest$ = new Subject<{ payload: SignInPayload; maxAge: number }>();
   private readonly forgotPasswordRequest$ = new Subject<ForgotPasswordPayload>();
   private readonly verifyResetCodeRequest$ = new Subject<VerifyResetCodePayload>();
   private readonly resetPasswordRequest$ = new Subject<ResetPasswordPayload>();
@@ -75,8 +76,11 @@ export class AuthService {
     this.signUpRequest$.next(payload);
   }
 
-  signIn(payload: SignInPayload): void {
-    this.signInRequest$.next(payload);
+  signIn(payload: SignInPayload, rememberDevice = true): void {
+    this.signInRequest$.next({
+      payload,
+      maxAge: rememberDevice ? COOKIE_MAX_AGE_30_DAYS : COOKIE_MAX_AGE_1_DAY,
+    });
   }
 
   forgotPassword(payload: ForgotPasswordPayload): void {
@@ -139,11 +143,12 @@ export class AuthService {
   private bindSignIn(): void {
     this.signInRequest$
       .pipe(
-        switchMap((payload) => {
+        switchMap(({ payload, maxAge }) => {
           const requestId = ++this.signInRequestId;
           this.startRequest();
 
           return this.http.post<AuthSessionResponse>(this.signinUrl, payload).pipe(
+            map((response) => ({ response, maxAge })),
             catchError((err) =>
               this.handleError(err, requestId, this.signInRequestId, 'Failed to sign in'),
             ),
@@ -151,12 +156,12 @@ export class AuthService {
           );
         }),
       )
-      .subscribe((response) => {
-        if (!response) {
+      .subscribe((result) => {
+        if (!result) {
           return;
         }
-        this.setSession(response);
-        this._message.set(response.message ?? 'Signed in successfully');
+        this.setSession(result.response, result.maxAge);
+        this._message.set(result.response.message ?? 'Signed in successfully');
       });
   }
 
@@ -322,19 +327,19 @@ export class AuthService {
     return fallback;
   }
 
-  private setSession(response: AuthSessionResponse): void {
-    this.setToken(response.token);
-    this.setUser(response.user);
+  private setSession(response: AuthSessionResponse, maxAge = COOKIE_MAX_AGE_30_DAYS): void {
+    this.setToken(response.token, maxAge);
+    this.setUser(response.user, maxAge);
   }
 
-  private setToken(token: string): void {
+  private setToken(token: string, maxAge = COOKIE_MAX_AGE_30_DAYS): void {
     this._token.set(token);
-    this.writeCookie(TOKEN_COOKIE, token);
+    this.writeCookie(TOKEN_COOKIE, token, maxAge);
   }
 
-  private setUser(user: AuthUser): void {
+  private setUser(user: AuthUser, maxAge = COOKIE_MAX_AGE_30_DAYS): void {
     this._user.set(user);
-    this.writeCookie(USER_COOKIE, JSON.stringify(user));
+    this.writeCookie(USER_COOKIE, JSON.stringify(user), maxAge);
   }
 
   private restoreSession(): void {
@@ -372,12 +377,12 @@ export class AuthService {
     return match ? decodeURIComponent(match[1]) : null;
   }
 
-  private writeCookie(name: string, value: string): void {
+  private writeCookie(name: string, value: string, maxAge = COOKIE_MAX_AGE_30_DAYS): void {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
 
-    document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${COOKIE_MAX_AGE_SECONDS}; SameSite=Lax`;
+    document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAge}; SameSite=Lax`;
   }
 
   private deleteCookie(name: string): void {
