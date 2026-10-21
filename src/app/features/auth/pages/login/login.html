@@ -131,6 +131,14 @@
             Sign in to access your saved addresses, track live orders, and unlock member rewards.
           </p>
         </div>
+        @if (resetNotice()) {
+          <p
+            class="rounded-lg bg-secondary-fixed px-space-md py-space-sm text-body-sm text-secondary"
+            role="status"
+          >
+            {{ resetNotice() }}
+          </p>
+        }
       </div>
 
       <form
