@@ -1,0 +1,107 @@
+<div class="container-nexus flex flex-col gap-space-lg">
+  <div class="flex flex-col justify-between gap-space-sm sm:flex-row sm:items-end">
+    <div>
+      <span class="text-label-sm font-bold tracking-widest text-secondary uppercase">Hand-Picked Curations</span>
+      <h2 class="font-display text-headline-lg font-bold tracking-tight text-on-surface">Featured Products</h2>
+    </div>
+    <div class="flex flex-wrap items-center gap-space-xs">
+      <button
+        type="button"
+        class="rounded-full px-space-sm py-1 text-label-md font-medium transition-colors"
+        [class.bg-primary]="selectedCategoryId() === null"
+        [class.text-on-primary]="selectedCategoryId() === null"
+        [class.bg-surface-container-low]="selectedCategoryId() !== null"
+        [class.text-on-surface-variant]="selectedCategoryId() !== null"
+        (click)="selectCategory(null)"
+      >
+        All Curated
+      </button>
+      @for (filter of categoryFilters(); track filter.id) {
+        <button
+          type="button"
+          class="rounded-full px-space-sm py-1 text-label-md font-medium transition-colors"
+          [class.bg-primary]="selectedCategoryId() === filter.id"
+          [class.text-on-primary]="selectedCategoryId() === filter.id"
+          [class.bg-surface-container-low]="selectedCategoryId() !== filter.id"
+          [class.text-on-surface-variant]="selectedCategoryId() !== filter.id"
+          (click)="selectCategory(filter.id)"
+        >
+          {{ filter.name }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (error()) {
+    <p class="text-body-sm text-error" role="alert">{{ error() }}</p>
+  }
+
+  <div class="grid grid-cols-1 gap-space-md sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+    @if (loading()) {
+      @for (item of placeholders; track item) {
+        <div class="h-80 animate-pulse rounded-xl bg-surface-container-low"></div>
+      }
+    } @else {
+      @for (item of visibleProducts(); track item._id) {
+        <article
+          class="group flex flex-col rounded-xl bg-surface-container-lowest p-space-md shadow-sm transition-all duration-300 hover:shadow-overlay"
+        >
+          <div class="relative mb-space-sm aspect-square overflow-hidden rounded-xl bg-surface-container-low isolate">
+            @if (item.category?.name) {
+              <span
+                class="absolute top-2 left-2 z-10 rounded-full bg-secondary-container px-space-xs py-0.5 text-[10px] font-bold tracking-wider text-on-secondary-container uppercase"
+                >{{ item.category.name }}</span
+              >
+            }
+            <button
+              type="button"
+              class="absolute top-2 right-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-lowest/80 text-on-surface-variant backdrop-blur-sm transition-colors hover:text-error"
+              aria-label="Add to wishlist"
+              (click)="toggleSaved(item._id)"
+            >
+              <span
+                class="material-symbols-outlined text-[18px]"
+                [class.text-error]="saved(item._id)"
+                [style.font-variation-settings]="saved(item._id) ? `'FILL' 1` : null"
+                >favorite</span
+              >
+            </button>
+            <a [routerLink]="['/products', item._id]" class="block h-full w-full">
+              <img
+                class="h-full w-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-105"
+                [src]="item.imageCover"
+                [alt]="item.title"
+                loading="lazy"
+              />
+            </a>
+          </div>
+          <div class="mb-1 flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-outline uppercase">{{ item.brand?.name }}</span>
+            <span class="flex items-center gap-0.5 text-secondary">
+              <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1">star</span>
+              <span class="text-[11px] font-bold">{{ item.ratingsAverage | number: '1.1-1' }}</span>
+              <span class="text-[10px] text-outline">({{ item.ratingsQuantity }})</span>
+            </span>
+          </div>
+          <a [routerLink]="['/products', item._id]">
+            <h3
+              class="mb-space-xs truncate font-display text-[15px] leading-tight font-semibold text-on-surface transition-colors group-hover:text-primary"
+            >
+              {{ item.title }}
+            </h3>
+          </a>
+          <div class="mt-auto flex items-baseline justify-between pt-space-xs">
+            <span class="font-display text-headline-sm font-bold text-on-surface">{{ item.price | number }} EGP</span>
+          </div>
+          <a
+            class="mt-space-sm flex h-10 w-full items-center justify-center gap-1 rounded-lg bg-surface-container-low text-label-md font-semibold text-primary transition-all hover:bg-primary hover:text-on-primary"
+            [routerLink]="['/products', item._id]"
+          >
+            <span class="material-symbols-outlined text-[18px]">shopping_bag</span>
+            <span>Add to Cart</span>
+          </a>
+        </article>
+      }
+    }
+  </div>
+</div>

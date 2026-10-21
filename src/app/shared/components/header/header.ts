@@ -50,6 +50,7 @@ export class Header implements OnInit {
 
   readonly navLinks = computed(() => {
     const links = [
+      { label: 'Home', path: '/', icon: 'home' },
       { label: 'Categories', path: '/categories', icon: 'grid_view' },
       { label: 'Products', path: '/products', icon: 'inventory_2' },
       { label: 'Brands', path: '/brands', icon: 'storefront' },

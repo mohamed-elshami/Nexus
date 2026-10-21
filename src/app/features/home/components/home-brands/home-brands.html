@@ -1,0 +1,43 @@
+<div class="container-nexus flex flex-col gap-space-lg">
+  <div class="flex flex-col justify-between gap-space-xs sm:flex-row sm:items-center">
+    <div>
+      <span class="text-label-sm font-bold tracking-widest text-primary uppercase">Official Partners</span>
+      <h2 class="font-display text-headline-lg font-bold tracking-tight text-on-surface">Top Brand Houses</h2>
+    </div>
+    <p class="max-w-sm text-body-sm text-on-surface-variant">
+      Guaranteed manufacturer warranty and official import clearance with direct authorized centers.
+    </p>
+  </div>
+
+  @if (error()) {
+    <p class="text-body-sm text-error" role="alert">{{ error() }}</p>
+  }
+
+  <div class="grid grid-cols-2 gap-space-md sm:grid-cols-3 md:grid-cols-5">
+    @if (loading()) {
+      @for (item of placeholders; track item) {
+        <div class="h-32 animate-pulse rounded-xl bg-surface-container"></div>
+      }
+    } @else {
+      @for (brand of brands(); track brand._id) {
+        <a
+          class="group flex flex-col items-center justify-center gap-space-xs rounded-xl bg-surface-container-lowest p-space-md shadow-sm transition-all duration-300 hover:shadow-overlay"
+          routerLink="/products"
+          [queryParams]="{ brands: brand._id }"
+        >
+          <span
+            class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-surface-container-low isolate"
+          >
+            <img
+              class="h-10 w-10 object-contain mix-blend-multiply"
+              [src]="brand.image"
+              [alt]="brand.name"
+              loading="lazy"
+            />
+          </span>
+          <span class="text-center text-label-lg font-bold text-on-surface">{{ brand.name }}</span>
+        </a>
+      }
+    }
+  </div>
+</div>

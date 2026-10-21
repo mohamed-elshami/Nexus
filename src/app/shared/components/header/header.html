@@ -121,6 +121,7 @@
         <a
           [routerLink]="link.path"
           routerLinkActive="bg-surface-container text-primary font-semibold"
+          [routerLinkActiveOptions]="{ exact: link.path === '/' }"
           class="rounded-lg px-space-sm py-space-xs text-label-md text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
           >{{ link.label }}</a
         >
@@ -323,6 +324,7 @@
           <a
             [routerLink]="link.path"
             routerLinkActive="bg-surface-container text-primary font-semibold"
+            [routerLinkActiveOptions]="{ exact: link.path === '/' }"
             class="flex items-center gap-space-sm rounded-lg px-space-md py-space-sm text-label-lg text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
             (click)="closeMenu()"
           >

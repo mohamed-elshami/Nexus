@@ -14,6 +14,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, map, of } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 import { API_ENDPOINTS } from '../../../../core/constants/api-endpoints';
+import { PageMeta } from '../../../../core/seo/page-meta';
 import { BreadcrumbItem } from '../../../../shared/components/breadcrumbs/breadcrumb.model';
 import { Breadcrumbs } from '../../../../shared/components/breadcrumbs/breadcrumbs';
 import { Product, Products } from '../../models/product.model';
@@ -29,6 +30,7 @@ export class ProductDetails implements OnInit {
   private readonly http = inject(HttpClient);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly pageMeta = inject(PageMeta);
 
   readonly product = this.productService.product;
   readonly loading = this.productService.loading;
@@ -156,6 +158,19 @@ export class ProductDetails implements OnInit {
         return;
       }
       this.loadRelated(item.category._id, item._id);
+    });
+
+    effect(() => {
+      const item = this.product();
+      if (!item || item._id !== this.id()) {
+        return;
+      }
+      this.pageMeta.apply({
+        title: item.title,
+        description: item.description || `View the price, photos, and reviews for ${item.title}.`,
+        image: item.imageCover,
+        type: 'product',
+      });
     });
   }
 
