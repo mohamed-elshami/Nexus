@@ -1,0 +1,153 @@
+<div class="pointer-events-none absolute -top-32 left-1/4 h-96 w-96 rounded-full bg-primary-fixed-dim/30 blur-3xl"></div>
+<div class="pointer-events-none absolute top-1/3 -right-24 h-80 w-80 rounded-full bg-secondary-fixed/40 blur-3xl"></div>
+
+<div class="container-nexus relative z-10 grid items-center gap-space-xl lg:grid-cols-12">
+  <div class="flex flex-col gap-space-lg lg:col-span-7">
+    <div
+      class="inline-flex items-center gap-space-xs self-start rounded-full bg-surface-container px-space-md py-1.5 shadow-sm"
+    >
+      <span class="h-2 w-2 animate-pulse rounded-full bg-primary"></span>
+      <span class="text-label-sm font-bold tracking-wide text-primary uppercase">Exclusive Summer Drops</span>
+      <span class="text-label-sm text-on-surface-variant">·</span>
+      <span class="text-label-sm font-semibold text-on-surface">Tech & Fashion up to 50% Off</span>
+      <span class="material-symbols-outlined text-[16px] text-primary">arrow_forward</span>
+    </div>
+
+    <div class="flex flex-col gap-space-xs">
+      <h1 class="font-display text-display-lg-mobile tracking-tight text-on-surface sm:text-display-lg sm:leading-none">
+        Next-Gen Shopping
+        <br class="hidden sm:inline" />
+        <span class="text-primary">Experience.</span>
+      </h1>
+      <p class="max-w-xl text-body-lg text-on-surface-variant">
+        Immerse yourself in precision-engineered electronics, flagship smartphones, and runway fashion.
+        Unrivaled speed, certified genuine curation, delivered to your doorstep.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-space-md pt-space-xs">
+      <a
+        class="flex h-12 items-center justify-center gap-space-xs rounded-xl bg-primary px-space-xl text-label-lg text-on-primary shadow-md transition-all hover:scale-[1.02] hover:bg-on-primary-fixed-variant active:scale-[0.98]"
+        routerLink="/"
+        fragment="featured"
+      >
+        <span>Explore Collections</span>
+        <span class="material-symbols-outlined text-[20px]">arrow_outward</span>
+      </a>
+      <a
+        class="flex h-12 items-center justify-center gap-space-xs rounded-xl bg-surface-container-lowest px-space-xl text-label-lg text-on-surface shadow-sm transition-all hover:scale-[1.02] hover:bg-surface-container active:scale-[0.98]"
+        routerLink="/"
+        fragment="deals"
+      >
+        <span class="material-symbols-outlined text-[20px] text-primary">local_fire_department</span>
+        <span>Today's Deals</span>
+      </a>
+    </div>
+
+    <div class="grid grid-cols-3 gap-space-md pt-space-md">
+      @for (stat of stats; track stat.label) {
+        <div class="flex flex-col rounded-xl bg-surface-container-lowest p-space-md shadow-sm">
+          <span class="font-display text-headline-lg font-bold" [class]="stat.valueClass">{{ stat.value }}</span>
+          <span class="text-body-sm text-on-surface-variant">{{ stat.label }}</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="relative flex items-center justify-center lg:col-span-5">
+    @if (loading()) {
+      <div class="aspect-square w-full max-w-lg animate-pulse rounded-xl bg-surface-container"></div>
+    } @else if (spotlight(); as product) {
+      <div class="relative flex aspect-square w-full max-w-lg items-center justify-center">
+        <div
+          class="absolute inset-4 rounded-full bg-gradient-to-tr from-primary-fixed-dim via-surface-container-high to-secondary-fixed opacity-70 blur-xl"
+        ></div>
+        <article
+          class="relative z-10 flex h-4/5 w-4/5 flex-col justify-between rounded-xl bg-surface-container-lowest p-space-md shadow-modal transition-transform duration-500 hover:scale-[1.02]"
+        >
+          <div class="z-10 flex items-center justify-between">
+            <span
+              class="rounded-full bg-secondary-container px-space-sm py-0.5 text-label-sm font-bold tracking-wider text-on-secondary-container uppercase"
+              >Spotlight Pick</span
+            >
+            <button
+              type="button"
+              class="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-low text-on-surface transition-colors hover:text-error"
+              aria-label="Save spotlight item"
+              (click)="toggleSaved(product._id)"
+            >
+              <span
+                class="material-symbols-outlined text-[18px]"
+                [class.text-error]="saved(product._id)"
+                [style.font-variation-settings]="saved(product._id) ? `'FILL' 1` : null"
+                >favorite</span
+              >
+            </button>
+          </div>
+          <a
+            [routerLink]="['/products', product._id]"
+            class="relative my-auto flex h-44 items-center justify-center overflow-hidden rounded-xl bg-surface-container-low isolate"
+          >
+            <img
+              class="h-full w-full object-contain mix-blend-multiply transition-transform duration-700 hover:scale-110"
+              [src]="product.imageCover"
+              [alt]="product.title"
+            />
+          </a>
+          <div class="z-10 flex flex-col gap-1">
+            <div class="flex items-center justify-between">
+              <span class="text-label-sm font-bold tracking-wider text-primary uppercase">{{
+                product.category?.name || product.brand?.name
+              }}</span>
+              <div class="flex items-center gap-0.5 text-secondary">
+                <span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1">star</span>
+                <span class="text-label-sm font-bold">{{ product.ratingsAverage | number: '1.1-1' }}</span>
+              </div>
+            </div>
+            <a [routerLink]="['/products', product._id]">
+              <h2 class="truncate font-display text-headline-sm font-semibold text-on-surface">{{ product.title }}</h2>
+            </a>
+            <div class="mt-space-xs flex items-center justify-between">
+              <span class="font-display text-headline-sm font-bold text-on-surface"
+                >{{ product.price | number }} EGP</span
+              >
+              <a
+                class="flex items-center gap-1 rounded-lg bg-primary px-space-md py-1.5 text-label-md text-on-primary shadow-sm transition-colors hover:bg-on-primary-fixed-variant"
+                [routerLink]="['/products', product._id]"
+              >
+                <span class="material-symbols-outlined text-[16px]">add_shopping_cart</span>
+                <span>Add</span>
+              </a>
+            </div>
+          </div>
+        </article>
+
+        @for (item of floating(); track item._id; let index = $index) {
+          <a
+            class="absolute z-20 hidden items-center gap-space-sm rounded-xl bg-surface-container-lowest/90 p-space-sm shadow-overlay backdrop-blur-md transition-transform duration-500 hover:-translate-y-1 lg:flex"
+            [class.-top-4]="index === 0"
+            [class.-left-4]="index === 0"
+            [class.-right-2]="index === 1"
+            [class.-bottom-6]="index === 1"
+            [routerLink]="['/products', item._id]"
+          >
+            <span
+              class="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-surface-container-low isolate"
+            >
+              <img class="h-full w-full object-contain mix-blend-multiply" [src]="item.imageCover" [alt]="item.title" />
+            </span>
+            <span class="flex max-w-36 flex-col">
+              <span class="truncate text-label-sm font-bold text-on-surface">{{ item.title }}</span>
+              <span class="text-[11px] font-semibold" [class.text-primary]="index === 0" [class.text-secondary]="index === 1">{{
+                item.brand?.name
+              }}</span>
+              <span class="text-label-sm text-on-surface">{{ item.price | number }} EGP</span>
+            </span>
+          </a>
+        }
+      </div>
+    } @else if (error()) {
+      <p class="text-body-sm text-error" role="alert">{{ error() }}</p>
+    }
+  </div>
+</div>

@@ -1,0 +1,16 @@
+<div class="container-nexus grid grid-cols-2 gap-space-md md:grid-cols-4">
+  @for (item of items; track item.title) {
+    <div class="flex items-center gap-space-sm rounded-xl bg-surface-container-lowest p-space-sm shadow-sm">
+      <div
+        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+        [class]="item.iconClass"
+      >
+        <span class="material-symbols-outlined text-[22px]">{{ item.icon }}</span>
+      </div>
+      <div class="min-w-0">
+        <span class="block truncate text-label-md font-semibold text-on-surface">{{ item.title }}</span>
+        <span class="block truncate text-body-sm text-on-surface-variant">{{ item.detail }}</span>
+      </div>
+    </div>
+  }
+</div>

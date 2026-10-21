@@ -1,0 +1,54 @@
+<div class="container-nexus flex flex-col gap-space-lg">
+  <div class="flex flex-col justify-between gap-space-sm sm:flex-row sm:items-end">
+    <div>
+      <span class="text-label-sm font-bold tracking-widest text-primary uppercase">Browse Departments</span>
+      <h2 class="font-display text-headline-lg font-bold tracking-tight text-on-surface">Explore Categories</h2>
+    </div>
+    <a
+      class="flex items-center gap-1 self-start text-label-md font-semibold text-primary hover:underline sm:self-auto"
+      routerLink="/categories"
+    >
+      <span>View all departments</span>
+      <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+    </a>
+  </div>
+
+  @if (error()) {
+    <p class="text-body-sm text-error" role="alert">{{ error() }}</p>
+  }
+
+  <div class="grid grid-cols-2 gap-space-md sm:grid-cols-3 md:grid-cols-4">
+    @if (loading()) {
+      @for (item of placeholders; track item) {
+        <div class="h-56 animate-pulse rounded-xl bg-surface-container"></div>
+      }
+    } @else {
+      @for (category of categories(); track category._id) {
+        <a
+          class="group flex flex-col overflow-hidden rounded-xl bg-surface-container-lowest p-space-md shadow-sm transition-all duration-300 hover:shadow-overlay"
+          routerLink="/products"
+          [queryParams]="{ categories: category._id }"
+        >
+          <div class="mb-space-sm flex items-center justify-between">
+            <span
+              class="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-container-low text-primary transition-colors group-hover:bg-primary group-hover:text-on-primary"
+            >
+              <span class="material-symbols-outlined text-[20px]">{{ iconFor(category.name) }}</span>
+            </span>
+          </div>
+          <span class="mb-space-sm h-28 overflow-hidden rounded-xl bg-surface-container-low">
+            <img
+              class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              [src]="category.image"
+              [alt]="category.name"
+              loading="lazy"
+            />
+          </span>
+          <span class="font-display text-headline-sm font-semibold text-on-surface transition-colors group-hover:text-primary">
+            {{ category.name }}
+          </span>
+        </a>
+      }
+    }
+  </div>
+</div>

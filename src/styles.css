@@ -236,6 +236,36 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  .fade-in-section {
+    opacity: 0;
+    transform: translateY(2rem);
+  }
+
+  .fade-in-section.is-inview {
+    animation: fade-slide-up 700ms ease-out forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fade-in-section,
+    .fade-in-section.is-inview {
+      opacity: 1;
+      transform: none;
+      animation: none;
+    }
+  }
+}
+
+@keyframes fade-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(2rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes in {
