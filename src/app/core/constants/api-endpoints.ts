@@ -5,6 +5,7 @@ export const API_ENDPOINTS = {
     forgotPassword: '/api/v1/auth/forgotPasswords',
     verifyResetCode: '/api/v1/auth/verifyResetCode',
     resetPassword: '/api/v1/auth/resetPassword',
+    verifyToken: '/api/v1/auth/verifyToken',
   },
   products: {
     list: '/api/v1/products',
@@ -17,11 +18,15 @@ export const API_ENDPOINTS = {
   subcategories: {
     list: '/api/v1/subcategories',
     byId: (id: string) => `/api/v1/subcategories/${id}`,
-    byCategory: (categoryId: string) =>
-      `/api/v1/categories/${categoryId}/subcategories`,
+    byCategory: (categoryId: string) => `/api/v1/categories/${categoryId}/subcategories`,
   },
   users: {
     changePassword: '/api/v1/users/changeMyPassword',
+    me: (id: string) => `/api/v1/users/${id}`,
+    updateMyProfile: '/api/v1/users/updateMe',
+    addresses: '/api/v1/addresses',
+    addressById: (id: string) => `/api/v1/addresses/${id}`,
+    removeAddress: (id: string) => `/api/v1/addresses/${id}`,
   },
   brands: {
     list: '/api/v1/brands',

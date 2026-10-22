@@ -14,6 +14,7 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/ro
 import { filter } from 'rxjs';
 import { AuthService } from '../../../features/auth/services/auth.service';
 import { CategoryService } from '../../../features/categories/services/category.service';
+import { UserService } from '../../../features/user/services/user.service';
 
 @Component({
   selector: 'app-header',
@@ -23,12 +24,13 @@ import { CategoryService } from '../../../features/categories/services/category.
 export class Header implements OnInit {
   private readonly categoryService = inject(CategoryService);
   private readonly authService = inject(AuthService);
+  private readonly userService = inject(UserService);
   private readonly router = inject(Router);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly categories = this.categoryService.categories;
-  readonly user = this.authService.user;
+  readonly user = this.userService.user;
   readonly isAuthenticated = this.authService.isAuthenticated;
   readonly menuOpen = signal(false);
   readonly categoryMenuOpen = signal(false);
@@ -37,7 +39,7 @@ export class Header implements OnInit {
 
   readonly userInitial = computed(() => {
     const name = this.user()?.name?.trim();
-    return name ? name.charAt(0).toUpperCase() : '?';
+    return name ? name.charAt(0).toUpperCase() : '';
   });
 
   readonly selectedCategoryLabel = computed(() => {

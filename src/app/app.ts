@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { PageMeta } from './core/seo/page-meta';
+import { UserService } from './features/user/services/user.service';
 import { RouteLoading } from './shared/components/route-loading/route-loading';
 
 @Component({
@@ -12,5 +13,6 @@ import { RouteLoading } from './shared/components/route-loading/route-loading';
 export class App {
   constructor() {
     inject(PageMeta);
+    inject(UserService);
   }
 }

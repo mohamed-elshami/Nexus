@@ -174,8 +174,13 @@
           >
             <span
               class="flex h-8 w-8 items-center justify-center rounded-full bg-primary-container text-label-md font-semibold text-on-primary"
-              >{{ userInitial() }}</span
             >
+              @if (userInitial()) {
+                {{ userInitial() }}
+              } @else {
+                <span class="material-symbols-outlined text-[20px]">person</span>
+              }
+            </span>
             <span
               class="material-symbols-outlined hidden text-[18px] text-on-surface-variant sm:inline"
               [class.rotate-180]="userMenuOpen()"
@@ -187,14 +192,16 @@
               class="absolute top-full right-0 z-50 mt-2 w-64 rounded-xl bg-surface-container-lowest py-space-xs shadow-modal"
               role="menu"
             >
-              <div
-                class="mx-space-xs mb-space-xs rounded-lg bg-surface-container-low px-space-md py-space-sm"
-              >
-                <p class="truncate text-label-md font-semibold text-on-surface">
-                  {{ user()?.name }}
-                </p>
-                <p class="truncate text-body-sm text-on-surface-variant">{{ user()?.email }}</p>
-              </div>
+              @if (user(); as account) {
+                <div
+                  class="mx-space-xs mb-space-xs rounded-lg bg-surface-container-low px-space-md py-space-sm"
+                >
+                  <p class="truncate text-label-md font-semibold text-on-surface">
+                    {{ account.name }}
+                  </p>
+                  <p class="truncate text-body-sm text-on-surface-variant">{{ account.email }}</p>
+                </div>
+              }
               <a
                 routerLink="/profile"
                 class="flex items-center gap-space-sm px-space-md py-space-xs text-label-md text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
@@ -336,10 +343,12 @@
 
       <div class="border-t border-outline-variant/20 p-space-md">
         @if (isAuthenticated()) {
-          <div class="mb-space-sm rounded-lg bg-surface-container-low px-space-md py-space-sm">
-            <p class="truncate text-label-md font-semibold text-on-surface">{{ user()?.name }}</p>
-            <p class="truncate text-body-sm text-on-surface-variant">{{ user()?.email }}</p>
-          </div>
+          @if (user(); as account) {
+            <div class="mb-space-sm rounded-lg bg-surface-container-low px-space-md py-space-sm">
+              <p class="truncate text-label-md font-semibold text-on-surface">{{ account.name }}</p>
+              <p class="truncate text-body-sm text-on-surface-variant">{{ account.email }}</p>
+            </div>
+          }
           <a
             routerLink="/profile"
             class="mb-space-xs flex items-center gap-space-sm rounded-lg px-space-md py-space-sm text-label-lg text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"

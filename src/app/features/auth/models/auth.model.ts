@@ -1,8 +1,4 @@
-export interface AuthUser {
-  name: string;
-  email: string;
-  role: string;
-}
+import { User } from '../../user/models/user.model';
 
 export interface SignUpPayload {
   name: string;
@@ -30,20 +26,27 @@ export interface ResetPasswordPayload {
   newPassword: string;
 }
 
-export interface UpdateLoggedUserPasswordPayload {
-  currentPassword: string;
-  password: string;
-  rePassword: string;
-}
-
 export interface AuthSessionResponse {
   message?: string;
   token: string;
-  user: AuthUser;
+  user: User;
 }
 
 export interface AuthMessageResponse {
   statusMsg?: string;
   status?: string;
   message: string;
+}
+
+export interface VerifiedToken {
+  id: string;
+  name: string;
+  role: string;
+  iat: number;
+  exp: number;
+}
+
+export interface VerifyTokenResponse {
+  message: string;
+  decoded: VerifiedToken;
 }
