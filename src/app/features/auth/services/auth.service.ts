@@ -1,7 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
-import { Subject, catchError, finalize, map, of, switchMap } from 'rxjs';
+import { Observable, Subject, catchError, finalize, map, of, switchMap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { API_ENDPOINTS } from '../../../core/constants/api-endpoints';
 import {
@@ -11,13 +11,11 @@ import {
   ResetPasswordPayload,
   SignInPayload,
   SignUpPayload,
-  AuthUser,
-  UpdateLoggedUserPasswordPayload,
   VerifyResetCodePayload,
+  VerifyTokenResponse,
 } from '../models/auth.model';
 
 const TOKEN_COOKIE = 'token';
-const USER_COOKIE = 'user';
 const COOKIE_MAX_AGE_30_DAYS = 60 * 60 * 24 * 30;
 const COOKIE_MAX_AGE_1_DAY = 60 * 60 * 24;
 
@@ -33,15 +31,13 @@ export class AuthService {
   private readonly forgotPasswordUrl = `${environment.apiUrl}${API_ENDPOINTS.auth.forgotPassword}`;
   private readonly verifyResetCodeUrl = `${environment.apiUrl}${API_ENDPOINTS.auth.verifyResetCode}`;
   private readonly resetPasswordUrl = `${environment.apiUrl}${API_ENDPOINTS.auth.resetPassword}`;
-  private readonly changePasswordUrl = `${environment.apiUrl}${API_ENDPOINTS.users.changePassword}`;
+  private readonly verifyTokenUrl = `${environment.apiUrl}${API_ENDPOINTS.auth.verifyToken}`;
 
-  private readonly _user = signal<AuthUser | null>(null);
   private readonly _token = signal<string | null>(null);
   private readonly _loading = signal(false);
   private readonly _error = signal<string | null>(null);
   private readonly _message = signal<string | null>(null);
 
-  readonly user = this._user.asReadonly();
   readonly token = this._token.asReadonly();
   readonly loading = this._loading.asReadonly();
   readonly error = this._error.asReadonly();
@@ -53,14 +49,17 @@ export class AuthService {
   private readonly forgotPasswordRequest$ = new Subject<ForgotPasswordPayload>();
   private readonly verifyResetCodeRequest$ = new Subject<VerifyResetCodePayload>();
   private readonly resetPasswordRequest$ = new Subject<ResetPasswordPayload>();
-  private readonly changePasswordRequest$ = new Subject<UpdateLoggedUserPasswordPayload>();
+  private readonly verifyTokenRequest$ = new Subject<string>();
+  private readonly sessionUserId$ = new Subject<string | null>();
+
+  readonly sessionUserId: Observable<string | null> = this.sessionUserId$.asObservable();
 
   private signUpRequestId = 0;
   private signInRequestId = 0;
   private forgotPasswordRequestId = 0;
   private verifyResetCodeRequestId = 0;
   private resetPasswordRequestId = 0;
-  private changePasswordRequestId = 0;
+  private verifyTokenRequestId = 0;
 
   constructor() {
     this.restoreSession();
@@ -69,7 +68,8 @@ export class AuthService {
     this.bindForgotPassword();
     this.bindVerifyResetCode();
     this.bindResetPassword();
-    this.bindChangePassword();
+    this.bindVerifyToken();
+    this.verifyToken();
   }
 
   signUp(payload: SignUpPayload): void {
@@ -95,8 +95,16 @@ export class AuthService {
     this.resetPasswordRequest$.next(payload);
   }
 
-  updateLoggedUserPassword(payload: UpdateLoggedUserPasswordPayload): void {
-    this.changePasswordRequest$.next(payload);
+  verifyToken(): void {
+    const token = this._token();
+    if (!token || !isPlatformBrowser(this.platformId)) {
+      return;
+    }
+    this.verifyTokenRequest$.next(token);
+  }
+
+  applyToken(token: string, maxAge = COOKIE_MAX_AGE_30_DAYS): void {
+    this.setToken(token, maxAge);
   }
 
   logout(): void {
@@ -110,7 +118,7 @@ export class AuthService {
     this.forgotPasswordRequestId++;
     this.verifyResetCodeRequestId++;
     this.resetPasswordRequestId++;
-    this.changePasswordRequestId++;
+    this.verifyTokenRequestId++;
     this._loading.set(false);
     this._error.set(null);
     this._message.set(null);
@@ -243,54 +251,59 @@ export class AuthService {
         if (response.token) {
           this.setToken(response.token);
         }
-        if (response.user) {
-          this.setUser(response.user);
-        }
         this._message.set(response.message ?? 'Password reset successfully');
       });
   }
 
-  private bindChangePassword(): void {
-    this.changePasswordRequest$
+  private bindVerifyToken(): void {
+    this.verifyTokenRequest$
       .pipe(
-        switchMap((payload) => {
-          const requestId = ++this.changePasswordRequestId;
-          this.startRequest();
+        switchMap((token) => {
+          const requestId = ++this.verifyTokenRequestId;
 
           return this.http
-            .put<AuthSessionResponse>(this.changePasswordUrl, payload, {
-              headers: this.authHeaders(),
+            .get<VerifyTokenResponse>(this.verifyTokenUrl, {
+              headers: new HttpHeaders({ token }),
             })
             .pipe(
-              catchError((err) =>
-                this.handleError(
-                  err,
+              map((response) => ({
+                requestId,
+                token,
+                invalid: response.message !== 'verified',
+                userId: response.decoded?.id ?? null,
+              })),
+              catchError((err: unknown) =>
+                of({
                   requestId,
-                  this.changePasswordRequestId,
-                  'Failed to update password',
-                ),
+                  token,
+                  invalid: this.isRejectedToken(err),
+                  userId: null,
+                }),
               ),
-              finalize(() => this.finishRequest(requestId, this.changePasswordRequestId)),
             );
         }),
       )
-      .subscribe((response) => {
-        if (!response) {
+      .subscribe((result) => {
+        if (result.requestId !== this.verifyTokenRequestId || this._token() !== result.token) {
           return;
         }
-        if (response.token) {
-          this.setToken(response.token);
+        if (result.invalid) {
+          this.clearSession();
+          return;
         }
-        if (response.user) {
-          this.setUser(response.user);
+        if (result.userId) {
+          this.publishUserId(result.userId);
         }
-        this._message.set(response.message ?? 'Password updated successfully');
       });
   }
 
-  private authHeaders(): HttpHeaders {
-    const token = this._token() ?? '';
-    return new HttpHeaders({ token });
+  private isRejectedToken(err: unknown): boolean {
+    if (!(err instanceof HttpErrorResponse)) {
+      return false;
+    }
+
+    const body = err.error as { statusMsg?: string } | null;
+    return body?.statusMsg === 'fail' || err.status === 401 || err.status === 403;
   }
 
   private startRequest(): void {
@@ -329,7 +342,13 @@ export class AuthService {
 
   private setSession(response: AuthSessionResponse, maxAge = COOKIE_MAX_AGE_30_DAYS): void {
     this.setToken(response.token, maxAge);
-    this.setUser(response.user, maxAge);
+    if (response.user?._id) {
+      this.publishUserId(response.user._id);
+    }
+  }
+
+  private publishUserId(id: string | null): void {
+    this.sessionUserId$.next(id);
   }
 
   private setToken(token: string, maxAge = COOKIE_MAX_AGE_30_DAYS): void {
@@ -337,35 +356,17 @@ export class AuthService {
     this.writeCookie(TOKEN_COOKIE, token, maxAge);
   }
 
-  private setUser(user: AuthUser, maxAge = COOKIE_MAX_AGE_30_DAYS): void {
-    this._user.set(user);
-    this.writeCookie(USER_COOKIE, JSON.stringify(user), maxAge);
-  }
-
   private restoreSession(): void {
     const token = this.readCookie(TOKEN_COOKIE);
-    const rawUser = this.readCookie(USER_COOKIE);
-
     if (token) {
       this._token.set(token);
-    }
-
-    if (!rawUser) {
-      return;
-    }
-
-    try {
-      this._user.set(JSON.parse(rawUser) as AuthUser);
-    } catch {
-      this.deleteCookie(USER_COOKIE);
     }
   }
 
   private clearSession(): void {
     this._token.set(null);
-    this._user.set(null);
     this.deleteCookie(TOKEN_COOKIE);
-    this.deleteCookie(USER_COOKIE);
+    this.publishUserId(null);
   }
 
   private readCookie(name: string): string | null {
